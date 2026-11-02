@@ -174,7 +174,7 @@ All `CXP_*`; `cxp-server` `config.rs` is the source of truth, `.env.example` the
 ## Development Workflow
 
 ### Repo
-- slug: savvagent/otto-cxp
+- slug: savvagent/cxp
 - trunk: main
 - tracker: github
 - epic tracker: github
@@ -192,7 +192,7 @@ All `CXP_*`; `cxp-server` `config.rs` is the source of truth, `.env.example` the
 - branch: <type>/<issue>-<slug>, type = feat | fix | docs | refactor | test | chore
 - commit: conventional commits, `<type>(<scope>): <imperative, lower-case>`; scope optional (e.g. `feat(core): …`); body explains why and ends `Fixes #N` (or `Refs #N` for a story merged into an epic branch)
 - PR body must contain: Fixes #N (one line per issue the PR closes)
-- merge: gh pr merge <pr> --repo savvagent/otto-cxp --squash --delete-branch
+- merge: gh pr merge <pr> --repo savvagent/cxp --squash --delete-branch
 - after merge: git branch -D <branch>
 
 The `main` ruleset (`main-protection`) only blocks deletion and force-pushes; it requires no
@@ -244,7 +244,7 @@ another port (`podman run -d --name cxp-pg-<branch_> -e POSTGRES_USER=cxp -e POS
 ### Ship
 - deploy: ci-auto
 - merge gate: on the PR's head SHA: `rust`, `docker-build`, `migrations-append-only` and `web` (CI workflow) succeeded, plus every other check that ran on the head SHA (the ruleset requires none). Before `.github/workflows/ci.yml` exists on the PR's head, the merge gate is the full local gate run on the head SHA with a clean tree
-- verify: the SHA proxy is the `deploy` job of the CI run for the merge SHA (`gh run list -R savvagent/otto-cxp --workflow CI --commit <merge-sha> --json databaseId,status,conclusion`); then `fly status -a otto-cxp` shows the machines on the new release; `curl -s https://cxp.savvagent.com/readyz` returns ready; `fly logs -a otto-cxp --no-tail` shows, from the deploy job's "Migrate" step (`otto-cxp-migrate`'s one-off machine), `applying migrations` and `migrations applied` (as `cxp_owner`), and from each serving machine `removed CXP_MIGRATION_DATABASE_URL from the serving process's environment`, `database role "cxp_server" … it owns nothing in this database …`, `not migrating`, `tenant isolation enforced as role "cxp_app"`, `the otto platform accepted this service's credential`, and `declared usage meters`; then exercise the changed surface read-only (`whoami` first). The first deploy is a hand `fly deploy -a otto-cxp --remote-only` (Rob); he sets `FLY_DEPLOY=enabled` only after verifying it. While the repo variable `FLY_DEPLOY` is not `enabled` the deploy job is skipped and a merge deploys nothing: report merged, not live
+- verify: the SHA proxy is the `deploy` job of the CI run for the merge SHA (`gh run list -R savvagent/cxp --workflow CI --commit <merge-sha> --json databaseId,status,conclusion`); then `fly status -a otto-cxp` shows the machines on the new release; `curl -s https://cxp.savvagent.com/readyz` returns ready; `fly logs -a otto-cxp --no-tail` shows, from the deploy job's "Migrate" step (`otto-cxp-migrate`'s one-off machine), `applying migrations` and `migrations applied` (as `cxp_owner`), and from each serving machine `removed CXP_MIGRATION_DATABASE_URL from the serving process's environment`, `database role "cxp_server" … it owns nothing in this database …`, `not migrating`, `tenant isolation enforced as role "cxp_app"`, `the otto platform accepted this service's credential`, and `declared usage meters`; then exercise the changed surface read-only (`whoami` first). The first deploy is a hand `fly deploy -a otto-cxp --remote-only` (Rob); he sets `FLY_DEPLOY=enabled` only after verifying it. While the repo variable `FLY_DEPLOY` is not `enabled` the deploy job is skipped and a merge deploys nothing: report merged, not live
 - release: none (continuous deploy of `main`); `@cxp/sdk` and `@cxp/react` are not published, and a publish is a human decision (Rob)
 - version files: crates/*/Cargo.toml (workspace version), sdk/typescript/package.json, packages/react/package.json
 
@@ -253,7 +253,7 @@ another port (`podman run -d --name cxp-pg-<branch_> -e POSTGRES_USER=cxp -e POS
 - New non-secret config key (agent, in the PR): `fly.toml` `[env]`, `.env.example`, and `crates/cxp-server/src/config.rs`.
 - New secret (human: Rob, before merge): `fly secrets set -a otto-cxp --stage NAME=…`; the PR updates `.env.example` and the secrets table in `docs/deploy/fly.md`.
 - New scope (human: Rob, before merge): the PR updates `cxp_core::scopes::KNOWN`/`DEFAULT`; Rob re-runs `savvagent-platform-server resource register …` from `docs/deploy/fly.md`.
-- otto-platform pin (agent, own PR): `savvagent-tenant` and `savvagent-resource` move to the same rev together.
+- savvagent/platform pin (agent, own PR): `savvagent-tenant` and `savvagent-resource` move to the same rev together.
 - Database role change (human: Rob, before merge): a change to the role otto-cxp connects as, or to what it may connect to, ships with a runbook in `docs/deploy/fly.md` ("Database role") that Rob runs before the PR merges; the PR body lists the steps.
 
 ### Human-only
@@ -263,7 +263,7 @@ Hand these to Rob with the exact command; never run them:
 - A hand `fly deploy` (only when Rob asks).
 - Creating `otto-cxp-migrate`, its deploy token (`FLY_API_TOKEN_MIGRATE`), and setting `CXP_MIGRATION_DATABASE_URL` on it only (docs/deploy/fly.md, "owner credential" runbook).
 - Anything that adds recurring cost: a new app, bigger VM, `min_machines_running > 0`, a volume, a database, or a paid service.
-- Merging a change to another otto repo that deploys it (e.g. the otto-platform marketing entry).
+- Merging a change to another otto repo that deploys it (e.g. the savvagent/platform marketing entry).
 - Package publishes.
 
 ### Invariants
@@ -280,4 +280,4 @@ Reviewers check every one. Design: `docs/specs/2026-10-14-otto-resource-server-d
 - **Untrusted text:** customer-supplied text returned by a tool is data, and database error text never reaches a response.
 - **The database is small and shared:** pool capped by `CXP_DB_MAX_CONNECTIONS` (5); no unbounded list queries.
 - **Licensing:** `crates/`, `apps/`, and repo-level files are AGPL-3.0-or-later; `sdk/` and `packages/` are MIT.
-- **otto-platform pin:** `savvagent-tenant` and `savvagent-resource` share one git rev in the root `Cargo.toml`.
+- **savvagent/platform pin:** `savvagent-tenant` and `savvagent-resource` share one git rev in the root `Cargo.toml`.

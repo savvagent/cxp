@@ -27,8 +27,8 @@ cxp-api = { path = "crates/cxp-api" }
 # shipping, member and team lookups, webhook verification). Each is pinned to
 # a rev and bumped deliberately rather than tracking a branch. Both share
 # one rev (the platform's savvagent-* crate rename), so they move together.
-savvagent-tenant = { git = "https://github.com/savvagent/otto-platform", rev = "063472cdb4eef7229d6732578cf061fd963996a4" }
-savvagent-resource = { git = "https://github.com/savvagent/otto-platform", rev = "063472cdb4eef7229d6732578cf061fd963996a4" }
+savvagent-tenant = { git = "https://github.com/savvagent/platform", rev = "063472cdb4eef7229d6732578cf061fd963996a4" }
+savvagent-resource = { git = "https://github.com/savvagent/platform", rev = "063472cdb4eef7229d6732578cf061fd963996a4" }
 
 sqlx = { version = "0.8", default-features = false, features = [
   "runtime-tokio", "tls-rustls", "postgres", "chrono", "uuid", "macros", "migrate", "json",
