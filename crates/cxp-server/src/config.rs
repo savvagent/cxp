@@ -1175,15 +1175,22 @@ mod tests {
 
     /// #59: production serves Savvagent CXP at cxp.savvagent.com and still
     /// accepts the fly.dev name on `/mcp`; #135: the legacy
-    /// otto-cxp.savvagent.com host only redirects.
+    /// otto-cxp.savvagent.com host only redirects; #31: console sign-in is
+    /// on, so the `CXP_ENCRYPTION_KEY` secret (stood in for here) is required.
     #[test]
     fn fly_toml_serves_cxp_savvagent_com_and_redirects_the_legacy_host() {
         let fly = fly_env();
-        let mut vars = env(&[]);
+        let mut vars = env(&[("CXP_ENCRYPTION_KEY", KEY)]);
         vars.remove("CXP_PUBLIC_URL");
         vars.remove("CXP_PLATFORM_URL");
         vars.extend(fly.into_iter().filter(|(k, _)| k.starts_with("CXP_")));
         let c = load(&vars).unwrap();
+        let console = c.console.as_ref().expect("console sign-in is on");
+        assert!(
+            console.client_id.starts_with("sav_client_"),
+            "{}",
+            console.client_id
+        );
         assert_eq!(c.public_url, "https://cxp.savvagent.com");
         assert_eq!(c.resource_uri, "https://cxp.savvagent.com/mcp");
         assert_eq!(c.platform_url, "https://savvagent.com");

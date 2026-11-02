@@ -27,7 +27,7 @@
 #   CXP_INTROSPECTION_SECRET        sav_rs_...    from `resource rotate-secret`
 #   CXP_PLATFORM_WEBHOOK_SECRET     sav_whsec_... from `resource set-webhook`
 #   CXP_ENCRYPTION_KEY              32 bytes base64 (`openssl rand -base64 32`); seals the
-#                                   web console's sessions. Needed once CXP_CONSOLE_CLIENT_ID is set.
+#                                   web console's sessions. Required: CXP_CONSOLE_CLIENT_ID is set.
 
 app = "otto-cxp"
 primary_region = "iad"
@@ -60,10 +60,10 @@ kill_timeout = 30
   # The serving role owns nothing and cannot migrate; the CI deploy job does (otto-cxp-migrate).
   # A deployment refuses to serve with this on.
   CXP_RUN_MIGRATIONS = "false"
-  # The web console's sign-in is off until the first-party client is registered at the
-  # platform and CXP_ENCRYPTION_KEY is set (docs/deploy/fly.md, "Web console sign-in"); then
-  # set the printed client id here.
-  # CXP_CONSOLE_CLIENT_ID = ""
+  # The web console's first-party client at the platform (redirect
+  # https://cxp.savvagent.com/auth/callback; docs/deploy/fly.md, "Web console sign-in", #31).
+  # Not a secret: a public client. Needs the CXP_ENCRYPTION_KEY secret, or the boot refuses.
+  CXP_CONSOLE_CLIENT_ID = "sav_client_jMOJ7RVKQataZnLKxxRbws02j4BWyBNecOvvgx70m-Y"
   CXP_LOG_FORMAT = "json"
   RUST_LOG = "info,cxp_server=info,cxp_mcp=info,cxp_api=info"
 
