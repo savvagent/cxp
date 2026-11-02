@@ -381,8 +381,8 @@ wire convention (#24): every JSON key in request bodies and responses, and every
 name, is camelCase (`teamId`, `customerId`, `createdAt`); multi-word request keys also accept
 their earlier snake_case spelling (`team_id`) as an alias, and both at once is a 400. Enum values
 and caller-owned JSON (`metadata`) are untouched. Lists are `{data, total, limit, offset}`;
-`GET /api/v1/customers/search` adds `totalCapped`. The tracked exception is
-`GET /api/v1/dashboard/metrics`, which also sends its deprecated snake_case keys (#35).
+`GET /api/v1/customers/search` adds `totalCapped`. `GET /api/v1/dashboard/metrics` sent its
+pre-#24 snake_case keys beside the camelCase ones until #35 removed them; there is no exception.
 `POST /api/v1/surveys` charges `create_survey`. (Superseded by #52, 2026-10-21: it charges
 nothing; `create_survey` is free.)
 `POST /platform/webhooks`: verify `Otto-Signature` with `CXP_PLATFORM_WEBHOOK_SECRET` (bad
