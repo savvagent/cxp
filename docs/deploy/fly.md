@@ -1559,7 +1559,7 @@ an OAuth authorization-code + PKCE flow against the platform, then keeps its own
 (tokens sealed with a subkey derived from `CXP_ENCRYPTION_KEY`, labels
 `cxp.console.session-tokens.v1` and, for the sign-in cookie, `cxp.console.oauth-flow.v1`; the
 cookie is stored only as its SHA-256). Design: `docs/specs/2026-10-14-console-sign-in-design.md`.
-Turning it on in production is tracked in #31.
+Production turned it on in #31 (client id in `fly.toml` `[env]`).
 
 It is **off until `CXP_CONSOLE_CLIENT_ID` is set**: the server boots and serves everything else,
 `/auth/login` answers `503 console_login_disabled`, and the console shows that sign-in is not
