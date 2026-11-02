@@ -43,20 +43,20 @@ database holds only opaque `org_id`, user, and `team_id` uuids.
   [runbook T5](#runbook-give-otto-cxp-its-own-tenant-role-human-only-rob)), and with `cxp_owner` the only roles besides superusers that may
   connect to `otto_cxp`. `cxp_owner` owns `otto_cxp` and everything in it, and logs in only from
   the migration app's one-off machine, to migrate (see [Database role](#database-role)). Tenant transactions run
-  as `cxp_app`, otto-cxp's own tenant role ([#28](https://github.com/savvagent/otto-cxp/issues/28)),
+  as `cxp_app`, otto-cxp's own tenant role ([#28](https://github.com/savvagent/cxp/issues/28)),
   under row-level security, which `cxp-server` proves at boot
   (`tenant isolation enforced as role "cxp_app"`) and refuses to start without; everything
   else (the sweep and usage shipper, tombstones, `/readyz`) runs as `cxp_server`, which RLS binds
   like any non-owner and which can neither alter, drop, nor truncate a table
-  ([#27](https://github.com/savvagent/otto-cxp/issues/27)). A deployment refuses to serve when
+  ([#27](https://github.com/savvagent/cxp/issues/27)). A deployment refuses to serve when
   the connecting role is, or can `SET ROLE` to, a superuser-equivalent role, or can connect to
-  another service's database ([#16](https://github.com/savvagent/otto-cxp/issues/16)), or owns
+  another service's database ([#16](https://github.com/savvagent/cxp/issues/16)), or owns
   anything in `otto_cxp` or may `TRUNCATE` or add a `TRIGGER` to a table (#27), so the role
   `fly postgres attach` creates, a superuser on the whole instance, is refused, and so is the
   owner.
   Customer and knowledge-base search run under RLS, whose per-row policy checks keep the
   planner off index paths for `ILIKE`, `%`, and `@@`; since
-  [#17](https://github.com/savvagent/otto-cxp/issues/17) they look candidates up in their own
+  [#17](https://github.com/savvagent/cxp/issues/17) they look candidates up in their own
   search index tables (migration 0004), read a bounded number of rows per query, and count
   matches up to 1000 (`docs/specs/2026-10-14-search-under-rls-design.md`). The index costs about
   7 kB per customer and 25 kB per published article as measured on a bulk-loaded benchmark;
@@ -65,7 +65,7 @@ database holds only opaque `org_id`, user, and `team_id` uuids.
   capped at 5 connections (`CXP_DB_MAX_CONNECTIONS`) because the instance is small and shared.
   Searches hold at most half of it (two of five) at once, process-wide; a search that cannot
   start within 500 ms answers `unavailable` (503 with `Retry-After`)
-  ([#42](https://github.com/savvagent/otto-cxp/issues/42)).
+  ([#42](https://github.com/savvagent/cxp/issues/42)).
   Split onto a dedicated instance before real customers.
 - **App** `otto-cxp-migrate` (#45): holds one secret, `CXP_MIGRATION_DATABASE_URL` (`cxp_owner`),
   and no running machine and no service. It exists so that credential lives outside `otto-cxp`:
@@ -148,7 +148,7 @@ environment dump in the serving process does not find its credential either.
 What remains: Fly's init (PID 1, root) still holds the app's secrets for the machine's life, so
 root on a serving machine (`fly ssh console`, or an exploit that escalates from the
 unprivileged `cxp` user to root) can read the owner's credential, and so can anyone with the
-app's Fly deploy token (`fly ssh`, or a machine they start). [#45](https://github.com/savvagent/otto-cxp/issues/45) closed that by
+app's Fly deploy token (`fly ssh`, or a machine they start). [#45](https://github.com/savvagent/cxp/issues/45) closed that by
 moving the owner's credential out of this app: the separate Fly app `otto-cxp-migrate` holds only
 `CXP_MIGRATION_DATABASE_URL`, and the CI deploy job runs `cxp-server migrate` there as a one-off
 machine before `fly deploy` ([Infrastructure](#infrastructure); the runbook is
@@ -172,7 +172,7 @@ from `PUBLIC`, so neither login can open another service's database.
 that could connect to `otto_platform` would hold whatever `otto_app` holds there. So, a rule for
 every service on `otto-db`: **no service may grant `CONNECT`, or any other database-level
 privilege, to `otto_app`**. A grant to it would hand that database to every service's login
-role. Since [#28](https://github.com/savvagent/otto-cxp/issues/28) otto-cxp no longer uses
+role. Since [#28](https://github.com/savvagent/cxp/issues/28) otto-cxp no longer uses
 `otto_app`: its tenant transactions assume its own `cxp_app`, and boot refuses to serve
 otherwise. `cxp_server` leaves `otto_app` in runbook T5; the rule stays for every service while
 `otto_app` exists.
@@ -651,7 +651,7 @@ anything elsewhere.
 
 ### Runbook: split the migration owner from the runtime role (human-only, Rob)
 
-[#27](https://github.com/savvagent/otto-cxp/issues/27). It starts from the state R1 to R7 left:
+[#27](https://github.com/savvagent/cxp/issues/27). It starts from the state R1 to R7 left:
 `cxp_server` owns `otto_cxp` and everything in it and is the role the app connects as. It ends
 with `cxp_owner` owning everything, migrating in the release command, and `cxp_server` owning
 nothing. Every step is production DDL on the shared `otto-db`, or a production secret; the agent
@@ -961,7 +961,7 @@ password lives only in `CXP_MIGRATION_DATABASE_URL` and your password manager; r
 
 ### Runbook: move the owner credential out of otto-cxp (human-only, Rob)
 
-[#45](https://github.com/savvagent/otto-cxp/issues/45). Starts from the state #27 left (or, if
+[#45](https://github.com/savvagent/cxp/issues/45). Starts from the state #27 left (or, if
 S6 was not yet run, before it). Ends with `CXP_MIGRATION_DATABASE_URL` a secret of the new app
 `otto-cxp-migrate` only, and the CI deploy job migrating there. The agent that wrote this ran none
 of it: each step creates an app, sets or unsets a secret, or sets a repo credential. **Do M1 to M6
@@ -982,7 +982,7 @@ fly apps create otto-cxp-migrate --org savvagent
 #     app's secrets through them, so it is the new keeper of the owner credential: keep it out of
 #     every other place (not otto-cxp's token, not your shell history).
 fly tokens create deploy -a otto-cxp-migrate     # prints the token
-gh secret set FLY_API_TOKEN_MIGRATE --repo savvagent/otto-cxp   # paste it
+gh secret set FLY_API_TOKEN_MIGRATE --repo savvagent/cxp   # paste it
 
 # M3. The owner's credential, on the new app only. Same host, port, and query string as
 #     DATABASE_URL (R0 noted them); read and printf are shell builtins, so the password reaches
@@ -1028,7 +1028,7 @@ needs no migration step.
 
 ### Runbook: give otto-cxp its own tenant role (human-only, Rob)
 
-[#28](https://github.com/savvagent/otto-cxp/issues/28). It starts from the state the split
+[#28](https://github.com/savvagent/cxp/issues/28). It starts from the state the split
 runbook (S0 to S7) and #27's deploy left: `cxp_owner` owns `otto_cxp`, `cxp_server` owns nothing
 and is a member of `otto_app` and `cxp_runtime`, and migrations 1 to 6 are applied. It ends with
 tenant transactions running as `cxp_app` and `cxp_server` no longer a member of `otto_app`. Every
@@ -1406,9 +1406,9 @@ Run [Verify](#verify). Only when it passes, enable CI deploys:
 ```bash
 # 6. A deploy token scoped to this one app, then the repo credentials.
 fly tokens create deploy -a otto-cxp                  # prints the token
-gh secret set FLY_API_TOKEN --repo savvagent/otto-cxp # paste the token
+gh secret set FLY_API_TOKEN --repo savvagent/cxp # paste the token
 # FLY_API_TOKEN_MIGRATE (otto-cxp-migrate's token) is set in the owner-credential runbook, M2.
-gh variable set FLY_DEPLOY --body enabled --repo savvagent/otto-cxp
+gh variable set FLY_DEPLOY --body enabled --repo savvagent/cxp
 ```
 
 Until `FLY_DEPLOY` is `enabled`, merging to `main` deploys nothing. Then merge

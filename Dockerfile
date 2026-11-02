@@ -44,7 +44,7 @@ COPY crates ./crates
 
 # Every statement is a runtime `sqlx::query`, never a `query!` macro, so the
 # build needs no database. Migrations are embedded by `sqlx::migrate!`.
-# The otto-platform crates are git dependencies, so cargo's git checkouts are
+# The savvagent/platform crates are git dependencies, so cargo's git checkouts are
 # cached alongside the registry. `target/` lives in a cache mount, so the
 # binary is copied out in the same RUN.
 #
