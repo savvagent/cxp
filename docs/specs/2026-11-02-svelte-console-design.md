@@ -42,7 +42,7 @@ then built on the Svelte stack.
   `@sveltejs/adapter-static` ^4, `vite` ^8, `typescript` ^6 (Kit 3's peer range, not 7), `vitest`
   ^5, `svelte-check` ^4, `@tailwindcss/vite` ^4, `@vite-pwa/sveltekit` ^2 (with its peers
   `rolldown` and `magicast` explicit), `bits-ui` ^2 via shadcn-svelte, `@tanstack/svelte-query` ^6,
-  `@lucide/svelte`, `svelte-sonner`, `layerchart` ^2, `zod`. pnpm 9.15.9 (the lockfile's major,
+  `@lucide/svelte`, `svelte-sonner`, `zod`. pnpm 9.15.9 (the lockfile's major,
   CI's and the Dockerfile's pin).
 - **Forms:** Svelte 5 runes + zod in every story. No superforms. zod is imported only through
   `#lib/zod`, which sets `jitless: true` before any schema is built: the CSP has no
@@ -64,8 +64,8 @@ then built on the Svelte stack.
 - **Build:** `svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && vite build && <boot
   extraction>`; `svelte-check` fails on errors and covers `test/`.
 - **Library mapping:** react-router → file routes; TanStack Query → `@tanstack/svelte-query`;
-  shadcn/Radix → shadcn-svelte (bits-ui), regenerated; recharts → LayerChart (shadcn-svelte
-  `chart`); cmdk → shadcn-svelte `command`; lucide-react → `@lucide/svelte`; sonner →
+  shadcn/Radix → shadcn-svelte (bits-ui), regenerated; recharts → nothing (the dashboard has
+  no charts, as in React, which never rendered one, so no chart library ships); cmdk → shadcn-svelte `command`; lucide-react → `@lucide/svelte`; sonner →
   `svelte-sonner`; vite-plugin-pwa → `@vite-pwa/sveltekit`.
 - **`#lib`, not `$lib`.** Kit 3 removed `$lib`; `package.json` `imports` maps `#lib/*` to
   `./src/lib/*`, so imports carry an extension (`#lib/query-client.js`). shadcn-svelte's
