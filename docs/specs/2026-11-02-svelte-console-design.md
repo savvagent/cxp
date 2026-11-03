@@ -1,6 +1,6 @@
 # Web console on SvelteKit 3 / Svelte 5 and Tailwind 4
 
-**Status:** IN PROGRESS (#67)
+**Status:** IMPLEMENTED (#80)
 **Epic:** savvagent/cxp#67
 
 ## Goal
