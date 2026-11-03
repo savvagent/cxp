@@ -1,10 +1,11 @@
 <script lang="ts">
-  // The console's root: its one query client, the toaster, the styles, and the
-  // service worker. The shell (navigation, sign-in) is built on top of this.
+  // The console's root: its one query client, the toaster, the styles, the
+  // service worker, and the shell (the sign-in gate, navigation and palette).
   import "../app.css";
   import { QueryClientProvider } from "@tanstack/svelte-query";
   import { onMount, type Snippet } from "svelte";
-  import { Toaster } from "svelte-sonner";
+  import RootLayout from "#lib/components/layout/root-layout.svelte";
+  import { Toaster } from "#lib/components/ui/sonner/index.js";
   import { queryClient } from "#lib/query-client.js";
 
   let { children }: { children: Snippet } = $props();
@@ -19,6 +20,8 @@
 </script>
 
 <QueryClientProvider client={queryClient}>
-  {@render children()}
+  <RootLayout>
+    {@render children()}
+  </RootLayout>
 </QueryClientProvider>
 <Toaster />
