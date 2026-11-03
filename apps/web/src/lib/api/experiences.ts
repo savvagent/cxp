@@ -7,7 +7,7 @@ export const experiencesApi = {
       `/experiences?limit=${params?.limit ?? 50}&offset=${params?.offset ?? 0}`,
     ),
 
-  get: (id: string) => apiFetch<Experience>(`/experiences/${id}`),
+  get: (id: string) => apiFetch<Experience>(`/experiences/${encodeURIComponent(id)}`),
 
   create: (data: { name: string; description?: string; teamId?: string | null }) =>
     apiFetch<Experience>("/experiences", {
@@ -16,11 +16,11 @@ export const experiencesApi = {
     }),
 
   update: (id: string, data: { name?: string; description?: string; teamId?: string | null }) =>
-    apiFetch<Experience>(`/experiences/${id}`, {
+    apiFetch<Experience>(`/experiences/${encodeURIComponent(id)}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiFetch<{ deleted: boolean }>(`/experiences/${id}`, { method: "DELETE" }),
+    apiFetch<{ deleted: boolean }>(`/experiences/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

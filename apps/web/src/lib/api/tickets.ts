@@ -32,7 +32,7 @@ export const ticketsApi = {
     );
   },
 
-  get: (id: string) => apiFetch<Ticket>(`/tickets/${id}`),
+  get: (id: string) => apiFetch<Ticket>(`/tickets/${encodeURIComponent(id)}`),
 
   create: (data: {
     customerId: string;
@@ -57,11 +57,11 @@ export const ticketsApi = {
       tags?: string[];
     },
   ) =>
-    apiFetch<Ticket>(`/tickets/${id}`, {
+    apiFetch<Ticket>(`/tickets/${encodeURIComponent(id)}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiFetch<{ deleted: boolean }>(`/tickets/${id}`, { method: "DELETE" }),
+    apiFetch<{ deleted: boolean }>(`/tickets/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

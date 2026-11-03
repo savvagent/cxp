@@ -1,7 +1,7 @@
 name: CI
 
 # The server: crates/ (cxp-core, cxp-http, cxp-mcp, cxp-api, cxp-server). The TypeScript
-# SDK, React package, and web app: sdk/typescript, packages/react, apps/web.
+# SDK, React package, and SvelteKit web console: sdk/typescript, packages/react, apps/web.
 on:
   push:
     branches: [main]
@@ -124,7 +124,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # The TypeScript SDK, React package, and web app (pnpm workspace).
+  # The TypeScript SDK, React package, and SvelteKit web console (pnpm workspace).
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 15

@@ -1,5 +1,5 @@
-import { QueryClient } from "@tanstack/react-query";
-import { ApiError } from "./api-error";
+import { QueryClient } from "@tanstack/svelte-query";
+import { ApiError } from "./api-error.js";
 
 /** How many times a failed query is retried, unless {@link shouldRetry} says no. */
 export const MAX_RETRIES = 1;

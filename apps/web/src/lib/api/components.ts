@@ -12,7 +12,7 @@ export const componentsApi = {
     );
   },
 
-  get: (id: string) => apiFetch<Component>(`/components/${id}`),
+  get: (id: string) => apiFetch<Component>(`/components/${encodeURIComponent(id)}`),
 
   create: (data: {
     pageId?: string;
@@ -30,11 +30,11 @@ export const componentsApi = {
     id: string,
     data: { name?: string; componentType?: string; description?: string; teamId?: string | null },
   ) =>
-    apiFetch<Component>(`/components/${id}`, {
+    apiFetch<Component>(`/components/${encodeURIComponent(id)}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiFetch<{ deleted: boolean }>(`/components/${id}`, { method: "DELETE" }),
+    apiFetch<{ deleted: boolean }>(`/components/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

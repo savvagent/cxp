@@ -22,13 +22,16 @@ cargo test -p cxp-core test_name         # one test
 server start (`cxp_core::migrate`) while `CXP_RUN_MIGRATIONS` is `true` (local default); a deployment
 migrates only through `cxp-server migrate`. `cargo run` serves the web console at `/console/` only after
 `pnpm build` has produced `apps/web/dist` (the default `CXP_CONSOLE_DIR`); without it `/console/`
-is a JSON 404 and everything else works. `pnpm build` in `apps/web` also type-checks
-`apps/web/test` (`tsconfig.test.json`), and `pnpm test` there needs the build's `dist/sw.js`.
+is a JSON 404 and everything else works. `pnpm build` in `apps/web` runs `svelte-kit sync`,
+`svelte-check` (over `src`, `test` and `scripts`), `vite build`, then
+`scripts/extract-inline-scripts.mjs` (moves the inline boot script out of `dist/index.html`: the
+server's CSP is `script-src 'self'`); `pnpm test` there needs the build's `dist/sw.js` and
+`dist/index.html`.
 
 ### TypeScript/React (pnpm monorepo: `sdk/typescript`, `packages/react`, `apps/web`)
 ```bash
 pnpm install --frozen-lockfile
-pnpm build   # tsup / vite
+pnpm build   # tsup / vite / SvelteKit
 pnpm test    # vitest
 pnpm lint    # currently a no-op: no package defines a `lint` script
 ```
@@ -70,7 +73,8 @@ is a JSON 404.
 **SDKs:**
 - `sdk/typescript/` - `@cxp/sdk` (MIT): `connectCxp({ url, token | authProvider })` returns `{ cxp }` with
   `.support`, `.feedback`, `.cdp`.
-- `packages/react/` - `@cxp/react` (MIT): components and hooks over `@cxp/sdk`. `apps/web/` - web app.
+- `packages/react/` - `@cxp/react` (MIT): components and hooks over `@cxp/sdk`. `apps/web/` - `@cxp/web`, the
+  web console: a static SvelteKit 3 (Svelte 5) app served under `/console/`.
 - `sdk/swift/`, `sdk/kotlin/` - stubs with no gate.
 
 ## Critical Patterns
