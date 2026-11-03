@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const toastError = vi.hoisted(() => vi.fn());
-vi.mock("sonner", () => ({ toast: { error: toastError } }));
+vi.mock("svelte-sonner", () => ({ toast: { error: toastError } }));
 
 import { apiFetch, ApiError } from "./api-client";
 import { queryClient, shouldRetry } from "./query-client";

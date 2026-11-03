@@ -5,8 +5,8 @@ node_modules
 apps
 !apps/web
 apps/web/node_modules
+apps/web/.svelte-kit
 apps/web/dist
-apps/web/tsconfig.tsbuildinfo
 # Local Vite env files can hold secrets; the image never needs them.
 apps/web/.env*
 packages

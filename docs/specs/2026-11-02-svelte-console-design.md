@@ -44,7 +44,10 @@ then built on the Svelte stack.
   `rolldown` and `magicast` explicit), `bits-ui` ^2 via shadcn-svelte, `@tanstack/svelte-query` ^6,
   `@lucide/svelte`, `svelte-sonner`, `layerchart` ^2, `zod`. pnpm 9.15.9 (the lockfile's major,
   CI's and the Dockerfile's pin).
-- **Forms:** Svelte 5 runes + zod in every story. No superforms.
+- **Forms:** Svelte 5 runes + zod in every story. No superforms. zod is imported only through
+  `#lib/zod`, which sets `jitless: true` before any schema is built: the CSP has no
+  `'unsafe-eval'`, and zod's JIT probe (`Function("")`) would otherwise report a violation on
+  every page (#77).
 - **No inline script.** The server's CSP is `script-src 'self'` and `crates/` cannot change, so a
   post-build step moves Kit's inline bootstrap out of `dist/index.html` into an external file; a
   test fails on any `<script>` without `src`. The service worker registers through

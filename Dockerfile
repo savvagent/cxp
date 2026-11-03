@@ -4,9 +4,10 @@
 # digest (`skopeo inspect --format '{{.Digest}}' docker://<image>:<tag>`).
 
 # ---------------------------------------------------------------- console
-# The web console (apps/web), built first and separately: it shares nothing
-# with the server's toolchain, so a Rust edit does not reinstall packages and
-# a console edit does not recompile the workspace.
+# The web console (apps/web, a static SvelteKit build), built first and
+# separately: it shares nothing with the server's toolchain, so a Rust edit
+# does not reinstall packages and a console edit does not recompile the
+# workspace.
 # node:22-bookworm-slim
 FROM node@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392 AS console
 
@@ -15,7 +16,8 @@ WORKDIR /web
 RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 
 # The workspace's manifests alone, so the install is cached until a
-# dependency changes. Only @cxp/web's dependencies are installed.
+# dependency changes. Only @cxp/web's dependencies are installed; the other
+# workspace manifests are here because the lockfile names every importer.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
 COPY sdk/typescript/package.json sdk/typescript/
@@ -24,8 +26,12 @@ RUN --mount=type=cache,id=otto-cxp-pnpm,target=/root/.local/share/pnpm/store,sha
     pnpm install --frozen-lockfile --filter @cxp/web
 
 COPY apps/web apps/web
-# The wire fixture the console's type tests read; `tsc -b` checks them too.
+# The wire fixture the console's type tests import; `svelte-check` checks
+# them too.
 COPY crates/cxp-api/tests/fixtures/wire.json crates/cxp-api/tests/fixtures/wire.json
+# svelte-kit sync, svelte-check (src, test and scripts), vite build into
+# apps/web/dist, then the boot script moved out of index.html (the server's CSP
+# allows no inline script).
 RUN pnpm --filter @cxp/web build
 
 # ---------------------------------------------------------------- build

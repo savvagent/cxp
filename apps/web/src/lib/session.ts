@@ -2,9 +2,9 @@
 // to the otto platform and back with an HttpOnly session cookie the console
 // never sees; `/auth/session` says whether it is signed in, and as whom;
 // `/auth/logout` ends it.
-import type { QueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { z } from "zod";
+import type { QueryClient } from "@tanstack/svelte-query";
+import { toast } from "svelte-sonner";
+import { z } from "#lib/zod.js";
 
 /** Where the console lives. The server accepts a sign-in `next` only under it. */
 export const CONSOLE_HOME = "/console/";
@@ -19,11 +19,14 @@ const signedOutSchema = z.object({
   loginEnabled: z.boolean(),
 });
 
+// `z.guid()` is zod 3's `z.string().uuid()`: any 8-4-4-4-12 hex id. zod 4's
+// `uuid()` also checks the RFC 9562 version and variant bits, which the
+// console has never required of the platform's ids.
 const signedInSchema = z.object({
   signedIn: z.literal(true),
   loginEnabled: z.literal(true),
-  userId: z.string().uuid(),
-  orgId: z.string().uuid(),
+  userId: z.guid(),
+  orgId: z.guid(),
   role: z.enum(["owner", "admin", "member"]),
   scopes: z.array(z.string()),
 });
