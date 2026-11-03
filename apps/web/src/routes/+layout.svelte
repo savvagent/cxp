@@ -14,7 +14,9 @@
     // Registered from a bundled module, never an inline script: the server's
     // CSP is `script-src 'self'`. Only built consoles have a service worker.
     if (import.meta.env.PROD) {
-      void import("virtual:pwa-register").then(({ registerSW }) => registerSW({ immediate: true }));
+      import("virtual:pwa-register")
+        .then(({ registerSW }) => registerSW({ immediate: true }))
+        .catch((err: unknown) => console.error("Could not register the service worker", err));
     }
   });
 </script>

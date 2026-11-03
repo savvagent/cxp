@@ -39,7 +39,8 @@ export interface PaletteSearchApi {
 /**
  * Search for `q`: customers from the server's search, tickets from the ten
  * most recent filtered here. Below two characters there are no results. A
- * search that fails keeps that kind's `previous` results, as the old palette did.
+ * search that fails keeps that kind's `previous` results, as the old palette did,
+ * and is logged as a warning.
  */
 export async function searchPalette(
   q: string,
@@ -48,6 +49,12 @@ export async function searchPalette(
 ): Promise<PaletteResults> {
   if (q.length < PALETTE_MIN_QUERY) return NO_RESULTS;
   const [customers, tickets] = await Promise.allSettled([api.searchCustomers(q), api.recentTickets()]);
+  if (customers.status === "rejected") {
+    console.warn("Customer search failed; keeping the previous results", customers.reason);
+  }
+  if (tickets.status === "rejected") {
+    console.warn("Ticket search failed; keeping the previous results", tickets.reason);
+  }
   return {
     customers:
       customers.status === "fulfilled" ? customers.value.data.slice(0, PALETTE_MAX_RESULTS) : previous.customers,

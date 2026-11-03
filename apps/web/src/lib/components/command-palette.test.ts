@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { Customer, Ticket } from "#lib/types.js";
 import { NO_RESULTS, isPaletteShortcut, matchTickets, searchPalette } from "./command-palette.js";
 
@@ -68,7 +68,8 @@ describe("searchPalette", () => {
     expect(results.tickets.map((t) => t.id)).toEqual(["t1"]);
   });
 
-  it("keeps the previous results of a search that failed", async () => {
+  it("keeps the previous results of a search that failed, and warns", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const previous = { customers: [customer("old")], tickets: [ticket("old", "Refund old")] };
     const failing = {
       searchCustomers: () => Promise.reject(new Error("down")),
@@ -80,5 +81,9 @@ describe("searchPalette", () => {
 
     const ticketsFail = { searchCustomers: api.searchCustomers, recentTickets: () => Promise.reject(new Error("x")) };
     expect((await searchPalette("ref", previous, ticketsFail)).tickets).toBe(previous.tickets);
+    expect(warn).toHaveBeenCalledTimes(2);
+    expect(warn.mock.calls[0][0]).toMatch(/^Customer search failed/);
+    expect(warn.mock.calls[1][0]).toMatch(/^Ticket search failed/);
+    warn.mockRestore();
   });
 });
