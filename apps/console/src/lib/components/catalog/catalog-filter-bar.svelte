@@ -19,11 +19,15 @@
   }: {
     /** Parameters to drop whenever a filter changes, e.g. `["page"]` to return to the first page. */
     resetParams?: readonly string[];
-    /** Called with the new filters after the URL is updated (e.g. to reset a page's own offset). */
+    /**
+     * Called with the new filters as the URL update starts, in the same flush, so a page's own
+     * state (e.g. its offset) resets before the query runs with the new filters.
+     */
     onChange?: (values: CatalogFilterValues) => void;
   } = $props();
 
-  const ALL = "_all";
+  /** The "no filter" select value (React's `_all`); `url.ts`'s `ALL` is the parent filters' own. */
+  const ANY = "_all";
 
   const experiences = createExperiences(() => ({ limit: 200 }));
   const applications = createApplications(() => ({ limit: 200 }));
@@ -56,8 +60,11 @@
   ]);
 
   function apply(next: CatalogFilterValues) {
-    // `setSearchParams` pushed a history entry and left scroll and focus alone.
-    void goto(catalogFilterHref(page.url, next, resetParams), { reset: false }).then(() => onChange?.(next));
+    // React updated the caller's state and the URL in one batch; do the same, so the list never
+    // queries the new filters with a stale offset. `setSearchParams` pushed a history entry and
+    // left scroll and focus alone.
+    onChange?.(next);
+    void goto(catalogFilterHref(page.url, next, resetParams), { reset: false });
   }
 
   function setFilter(key: keyof CatalogFilterValues, v: string | undefined) {
@@ -74,13 +81,13 @@
   {#each filters as f (f.key)}
     <Select.Root
       type="single"
-      bind:value={() => value[f.key] ?? ALL, (v) => setFilter(f.key, v === ALL ? undefined : v)}
+      bind:value={() => value[f.key] ?? ANY, (v) => setFilter(f.key, v === ANY ? undefined : v)}
     >
       <Select.Trigger class="w-[180px]" aria-label={f.aria}>
         <span class="truncate">{label(f.items, value[f.key], f.all)}</span>
       </Select.Trigger>
       <Select.Content>
-        <Select.Item value={ALL} label={f.all} />
+        <Select.Item value={ANY} label={f.all} />
         {#each f.items as item (item.id)}
           <Select.Item value={item.id} label={item.name} />
         {/each}
