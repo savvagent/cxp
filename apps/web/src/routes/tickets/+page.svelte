@@ -11,6 +11,7 @@
   import TicketIcon from "@lucide/svelte/icons/ticket";
   import Trash2 from "@lucide/svelte/icons/trash-2";
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import ConfirmDialog from "#lib/components/shared/confirm-dialog.svelte";
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
@@ -89,12 +90,13 @@
     if (!deleteTarget) return;
     try {
       await deleteTicket.mutateAsync(deleteTarget.id);
-      toast.success("Ticket deleted");
-      deleteOpen = false;
-      deleteTarget = null;
-    } catch {
-      toast.error("Failed to delete ticket");
+    } catch (err) {
+      toastError(err, "Failed to delete ticket", "fixed");
+      return;
     }
+    toast.success("Ticket deleted");
+    deleteOpen = false;
+    deleteTarget = null;
   }
 </script>
 

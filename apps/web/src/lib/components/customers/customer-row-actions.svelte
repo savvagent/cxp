@@ -2,6 +2,7 @@
   import MoreHorizontal from "@lucide/svelte/icons/ellipsis";
   import Trash2 from "@lucide/svelte/icons/trash";
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import ConfirmDialog from "#lib/components/shared/confirm-dialog.svelte";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as DropdownMenu from "#lib/components/ui/dropdown-menu/index.js";
@@ -17,11 +18,12 @@
   async function handleDelete() {
     try {
       await deleteCustomer.mutateAsync(customer.id);
-      toast.success(`${displayName(customer)} deleted`);
-      confirmOpen = false;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete customer");
+      toastError(err, "Failed to delete customer");
+      return;
     }
+    toast.success(`${displayName(customer)} deleted`);
+    confirmOpen = false;
   }
 </script>
 

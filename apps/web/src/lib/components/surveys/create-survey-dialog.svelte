@@ -1,8 +1,10 @@
 <script lang="ts">
   // The surveys list's "New Survey" dialog: the same fields, zod validation (on
-  // submit, then on every edit), payload and toasts as the React console's. As with react-hook-form,
-  // the values survive closing the dialog and are cleared only by a create.
+  // submit, then on every edit), payload and toasts as the React console's. As
+  // with react-hook-form, the values survive closing the dialog and are cleared
+  // only by a create.
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Dialog from "#lib/components/ui/dialog/index.js";
   import { Input } from "#lib/components/ui/input/index.js";
@@ -40,7 +42,7 @@
     try {
       await createSurvey.mutateAsync(built.input);
     } catch (err) {
-      toast.error(`Failed to create survey: ${err instanceof Error ? err.message : String(err)}`);
+      toastError(err, "Failed to create survey", "prefix");
       return;
     }
     toast.success("Survey created");

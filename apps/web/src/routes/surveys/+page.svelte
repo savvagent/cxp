@@ -7,6 +7,7 @@
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import { catalogFiltersFromUrl } from "#lib/catalog-filters.js";
   import CatalogFilterBar from "#lib/components/catalog/catalog-filter-bar.svelte";
   import ConfirmDialog from "#lib/components/shared/confirm-dialog.svelte";
@@ -51,7 +52,7 @@
     try {
       await deleteSurvey.mutateAsync(deleteTarget.id);
     } catch (err) {
-      toast.error(`Failed to delete: ${err instanceof Error ? err.message : String(err)}`);
+      toastError(err, "Failed to delete", "prefix");
       return;
     }
     toast.success("Survey deleted");

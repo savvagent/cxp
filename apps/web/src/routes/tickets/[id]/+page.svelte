@@ -7,6 +7,7 @@
   import ArrowLeft from "@lucide/svelte/icons/arrow-left";
   import ExternalLink from "@lucide/svelte/icons/external-link";
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import PriorityBadge from "#lib/components/shared/priority-badge.svelte";
   import StatusBadge from "#lib/components/shared/status-badge.svelte";
   import TicketDetailSkeleton from "#lib/components/tickets/ticket-detail-skeleton.svelte";
@@ -37,10 +38,11 @@
     if (!ticket) return;
     try {
       await updateTicket.mutateAsync(ticketFieldUpdate(ticket.id, field, value));
-      toast.success("Ticket updated");
-    } catch {
-      toast.error("Failed to update ticket");
+    } catch (err) {
+      toastError(err, "Failed to update ticket", "fixed");
+      return;
     }
+    toast.success("Ticket updated");
   }
 
   function backToList() {

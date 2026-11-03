@@ -1,5 +1,6 @@
 <script lang="ts">
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Dialog from "#lib/components/ui/dialog/index.js";
   import { createCreateCustomer } from "#lib/queries/index.js";
@@ -43,11 +44,12 @@
     errors = {};
     try {
       await createCustomer.mutateAsync(r.data);
-      toast.success("Customer created");
-      handleClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create customer");
+      toastError(err, "Failed to create customer");
+      return;
     }
+    toast.success("Customer created");
+    handleClose();
   }
 </script>
 

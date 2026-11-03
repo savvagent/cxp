@@ -7,6 +7,7 @@
   // confirmation. What differs between the levels comes in `config`.
   import { untrack } from "svelte";
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import { page as appPage } from "$app/state";
   import ConfirmDialog from "#lib/components/shared/confirm-dialog.svelte";
   import CopyableId from "#lib/components/shared/copyable-id.svelte";
@@ -59,36 +60,29 @@
     }
   }
 
-  function submit(values: F) {
-    const onError = (err: Error) => toast.error(`Failed: ${err.message}`);
-    if (editTarget) {
-      updateRecord.mutate(config.form.updateInput(editTarget.id, values), {
-        onSuccess: () => {
-          toast.success(`${config.singular} updated`);
-          closeDialog(false);
-        },
-        onError,
-      });
-    } else {
-      createRecord.mutate(config.form.createInput(values), {
-        onSuccess: () => {
-          toast.success(`${config.singular} created`);
-          closeDialog(false);
-        },
-        onError,
-      });
+  async function submit(values: F) {
+    const editing = editTarget;
+    try {
+      if (editing) await updateRecord.mutateAsync(config.form.updateInput(editing.id, values));
+      else await createRecord.mutateAsync(config.form.createInput(values));
+    } catch (err) {
+      toastError(err, "Failed", "prefix");
+      return;
     }
+    toast.success(`${config.singular} ${editing ? "updated" : "created"}`);
+    closeDialog(false);
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
-    deleteRecord.mutate(deleteTarget.id, {
-      onSuccess: () => {
-        toast.success(`${config.singular} deleted`);
-        deleteTarget = null;
-      },
-      onError: (err) => toast.error(`Failed: ${err.message}`),
-    });
+    try {
+      await deleteRecord.mutateAsync(deleteTarget.id);
+    } catch (err) {
+      toastError(err, "Failed", "prefix");
+      return;
+    }
+    toast.success(`${config.singular} deleted`);
+    deleteTarget = null;
   }
 </script>
 

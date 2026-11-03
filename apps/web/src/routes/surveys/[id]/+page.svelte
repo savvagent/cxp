@@ -10,6 +10,7 @@
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import CopyableId from "#lib/components/shared/copyable-id.svelte";
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
@@ -65,7 +66,7 @@
     try {
       await updateSurvey.mutateAsync(result.update);
     } catch (err) {
-      toast.error(`Failed to update survey: ${err instanceof Error ? err.message : String(err)}`);
+      toastError(err, "Failed to update survey", "prefix");
       return;
     }
     toast.success("Survey updated");

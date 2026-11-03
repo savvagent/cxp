@@ -2,6 +2,7 @@
   // The tickets list's "New Ticket" dialog: the same fields, zod validation
   // (on submit, then on every edit), payload and toasts as the React console's.
   import { toast } from "svelte-sonner";
+  import { toastError } from "#lib/errors.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Dialog from "#lib/components/ui/dialog/index.js";
   import { Input } from "#lib/components/ui/input/index.js";
@@ -67,11 +68,12 @@
     if (!validation.ok) return;
     try {
       await createTicket.mutateAsync(toCreateTicketInput(validation.data));
-      toast.success("Ticket created");
-      close();
-    } catch {
-      toast.error("Failed to create ticket");
+    } catch (err) {
+      toastError(err, "Failed to create ticket", "fixed");
+      return;
     }
+    toast.success("Ticket created");
+    close();
   }
 </script>
 
