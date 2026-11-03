@@ -4,7 +4,8 @@
   import { Badge } from "#lib/components/ui/badge/index.js";
   import * as Table from "#lib/components/ui/table/index.js";
   import type { FeedbackSummary } from "#lib/types.js";
-  import { formatDate, humanize } from "./customers.js";
+  import { formatDate } from "#lib/format.js";
+  import { humanize } from "./customers.js";
 
   let { feedback }: { feedback: FeedbackSummary[] } = $props();
 </script>

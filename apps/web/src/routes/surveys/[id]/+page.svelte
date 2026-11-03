@@ -1,6 +1,5 @@
 <script lang="ts">
-  // One survey (port of the React console's src/pages/surveys/survey-detail.tsx): its
-  // details and questions, edited in place (title, description, status and the
+  // One survey: its details and questions, edited in place (title, description, status and the
   // questions JSON), and the first page of its responses.
   import ArrowLeft from "@lucide/svelte/icons/arrow-left";
   import ClipboardList from "@lucide/svelte/icons/clipboard-list";
@@ -33,6 +32,7 @@
   import { Skeleton } from "#lib/components/ui/skeleton/index.js";
   import * as Table from "#lib/components/ui/table/index.js";
   import { Textarea } from "#lib/components/ui/textarea/index.js";
+  import { localeDate, localeDateTime } from "#lib/format.js";
   import { createSurvey, createSurveyResponses, createUpdateSurvey } from "#lib/queries/index.js";
   import { responsesCount } from "#lib/surveys.js";
 
@@ -151,7 +151,7 @@
           {/if}
           <div class="flex items-center gap-3 text-xs text-muted-foreground">
             <CopyableId value={survey.id} />
-            <span>Created {new Date(survey.createdAt).toLocaleDateString()}</span>
+            <span>Created {localeDate(survey.createdAt)}</span>
           </div>
         {/if}
       {:else}
@@ -220,7 +220,7 @@
               <Table.Row>
                 <Table.Cell class="font-mono text-xs">{response.customerId?.slice(0, 8) ?? "—"}</Table.Cell>
                 <Table.Cell class="text-sm text-muted-foreground">
-                  {response.completedAt ? new Date(response.completedAt).toLocaleString() : "—"}
+                  {response.completedAt ? localeDateTime(response.completedAt) : "—"}
                 </Table.Cell>
                 <Table.Cell class="max-w-[300px] truncate font-mono text-xs" title={answers.full}>
                   {answers.short}

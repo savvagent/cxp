@@ -9,7 +9,7 @@
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Card from "#lib/components/ui/card/index.js";
   import type { Customer } from "#lib/types.js";
-  import { formatDate } from "./customers.js";
+  import { formatDate } from "#lib/format.js";
 
   let { customer, onEdit }: { customer: Customer; onEdit: () => void } = $props();
 </script>

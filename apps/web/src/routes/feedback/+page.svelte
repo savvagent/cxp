@@ -1,19 +1,15 @@
 <script lang="ts">
-  // The feedback list (port of the React console's src/pages/feedback/index.tsx): the type
-  // filter (`?feedback_type=`) and the catalog filters live in the URL; the page
-  // number is local state, back to the first page whenever a filter changes.
+  // The feedback list: the type filter (`?feedback_type=`) and the catalog
+  // filters live in the URL; the page number is local state, back to the first
+  // page whenever a filter changes.
   import MessageSquare from "@lucide/svelte/icons/message-square";
-  import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
   import { catalogFiltersFromUrl } from "#lib/catalog-filters.js";
   import CatalogFilterBar from "#lib/components/catalog/catalog-filter-bar.svelte";
-  import { searchOf } from "#lib/components/catalog/url.js";
   import {
-    ALL,
     FEEDBACK_TYPES,
     feedbackListParams,
-    feedbackPagination,
     feedbackTypeBadgeVariant,
     feedbackTypeFromUrl,
     feedbackTypeLabel,
@@ -27,7 +23,11 @@
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Select from "#lib/components/ui/select/index.js";
   import * as Table from "#lib/components/ui/table/index.js";
+  import { ALL } from "#lib/forms.js";
+  import { localeDate } from "#lib/format.js";
+  import { pageWindow } from "#lib/pagination.js";
   import { createFeedback } from "#lib/queries/index.js";
+  import { pushUrl, queryHref, searchOf } from "#lib/url-state.js";
 
   /** Zero-based page number; React kept it in component state, not the URL. */
   let pageIndex = $state(0);
@@ -39,13 +39,10 @@
 
   const items = $derived(feedback.data?.data ?? []);
   const total = $derived(feedback.data?.total ?? 0);
-  const paging = $derived(feedbackPagination(total, pageIndex));
+  const paging = $derived(pageWindow(total, pageIndex));
 
   function setFeedbackType(value: string | undefined) {
-    const qs = withFeedbackType(searchOf(page.url), value).toString();
-    // A new history entry, as react-router's `setSearchParams`; focus and
-    // scroll stay where they are.
-    void goto(`${resolve("/feedback")}${qs ? `?${qs}` : ""}`, { reset: false });
+    pushUrl(queryHref(resolve("/feedback"), withFeedbackType(searchOf(page.url), value)));
     pageIndex = 0;
   }
 </script>
@@ -112,7 +109,7 @@
               </Table.Cell>
               <Table.Cell class="font-mono text-xs">{item.customerId?.slice(0, 8) ?? "—"}</Table.Cell>
               <Table.Cell class="hidden text-sm text-muted-foreground md:table-cell">
-                {new Date(item.createdAt).toLocaleDateString()}
+                {localeDate(item.createdAt)}
               </Table.Cell>
             </Table.Row>
           {/each}
@@ -122,7 +119,7 @@
 
     {#if paging.totalPages > 1}
       <div class="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{paging.range}</span>
+        <span>Showing {paging.from}–{paging.to} of {total}</span>
         <div class="flex gap-2">
           <Button variant="outline" size="sm" onclick={() => (pageIndex -= 1)} disabled={!paging.hasPrev}>
             Previous

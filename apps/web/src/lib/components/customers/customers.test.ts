@@ -2,13 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { Customer } from "#lib/types.js";
 import {
   EMPTY_CUSTOMER_FORM,
-  PAGE_SIZE,
   customerFormValues,
   displayName,
   filterCustomers,
-  formatDate,
   humanize,
-  pagination,
   parseCustomerForm,
   splitTags,
 } from "./customers";
@@ -108,29 +105,13 @@ describe("customer list search", () => {
   });
 });
 
-describe("customer list paging", () => {
-  it("pages by 50", () => {
-    expect(PAGE_SIZE).toBe(50);
-    expect(pagination(0, 120)).toEqual({
-      hasPrev: false,
-      hasNext: true,
-      from: 1,
-      to: 50,
-      prevOffset: 0,
-      nextOffset: 50,
-    });
-    expect(pagination(100, 120)).toMatchObject({ hasPrev: true, hasNext: false, from: 101, to: 120, prevOffset: 50 });
-  });
-});
-
 describe("customer labels", () => {
   it("names a customer by name, else email", () => {
     expect(displayName(customer())).toBe("Ada Lovelace");
     expect(displayName(customer({ name: null }))).toBe("ada@example.com");
   });
 
-  it("formats dates and enum values as the React pages did", () => {
-    expect(formatDate("2026-01-05T12:00:00Z")).toBe("Jan 5, 2026");
+  it("shows enum values as the React pages did", () => {
     expect(humanize("page_view_event")).toBe("page view event");
   });
 });

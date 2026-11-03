@@ -9,7 +9,6 @@
     experienceFormValues,
     experienceSchema,
     experienceUpdateInput,
-    showingLine,
     teamName,
     type ExperienceForm,
   } from "#lib/components/catalog/forms.js";
@@ -20,6 +19,8 @@
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
   import PageHeader from "#lib/components/shared/page-header.svelte";
   import * as Table from "#lib/components/ui/table/index.js";
+  import { localeDate } from "#lib/format.js";
+  import { PAGE_SIZE, showingLine } from "#lib/pagination.js";
   import {
     createCreateExperience,
     createDeleteExperience,
@@ -29,7 +30,6 @@
   } from "#lib/queries/index.js";
   import type { Experience } from "#lib/types.js";
 
-  const PAGE_SIZE = 20;
   const page = 0;
 
   let createOpen = $state(false);
@@ -125,7 +125,7 @@
                 {exp.description ?? "—"}
               </Table.Cell>
               <Table.Cell class="hidden text-sm text-muted-foreground md:table-cell">
-                {new Date(exp.createdAt).toLocaleDateString()}
+                {localeDate(exp.createdAt)}
               </Table.Cell>
               <Table.Cell>
                 <RowActions noun="experience" onEdit={() => (editTarget = exp)} onDelete={() => (deleteTarget = exp)} />

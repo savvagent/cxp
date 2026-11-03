@@ -1,12 +1,12 @@
-// The tickets pages' framework-free logic (ported from
-// the React console's src/pages/tickets/*.tsx): the option lists, the URL state of the
-// list page, the create form's schema and payload, and the detail page's
+// The tickets pages' framework-free logic: the option lists, the URL state of
+// the list page, the create form's schema and payload, and the detail page's
 // field updates. Kept out of the components so it is tested on its own.
 import { z } from "#lib/zod.js";
 import { catalogFiltersFromUrl, type CatalogFilterValues } from "#lib/catalog-filters.js";
+import { fromFilterSelect } from "#lib/forms.js";
+import { PAGE_SIZE } from "#lib/pagination.js";
+import { withParam } from "#lib/url-state.js";
 import type { CreateTicketInput, TicketListParams, UpdateTicketInput } from "#lib/queries/tickets.js";
-
-export const PAGE_SIZE = 20;
 
 export interface Option {
   value: string;
@@ -34,11 +34,6 @@ export const CHANNEL_OPTIONS: Option[] = [
   { value: "chat", label: "Chat" },
   { value: "web", label: "Web" },
 ];
-
-/** The select item that clears a list filter. */
-export const ALL = "_all";
-/** The select item that clears an optional create-form field. */
-export const NONE = "_none";
 
 /** `value`'s label in `options`, or `value` itself when it is not one of them. */
 export function optionLabel(options: Option[], value: string): string {
@@ -90,30 +85,14 @@ export function hasTicketFilters(state: TicketListState): boolean {
  * "" removes it) and back on the first page. `prev` is not modified.
  */
 export function withTicketFilter(prev: URLSearchParams, key: "status" | "priority", value: string): URLSearchParams {
-  const next = new URLSearchParams(prev);
-  if (value && value !== ALL) next.set(key, value);
-  else next.delete(key);
+  const next = withParam(prev, key, fromFilterSelect(value));
   next.delete("page");
   return next;
 }
 
 /** `prev` on page `page` (zero-based; page 0 has no parameter). `prev` is not modified. */
 export function withPage(prev: URLSearchParams, page: number): URLSearchParams {
-  const next = new URLSearchParams(prev);
-  if (page <= 0) next.delete("page");
-  else next.set("page", String(page));
-  return next;
-}
-
-export interface Pagination {
-  totalPages: number;
-  hasPrev: boolean;
-  hasNext: boolean;
-}
-
-export function pagination(total: number, page: number): Pagination {
-  const totalPages = Math.ceil(total / PAGE_SIZE);
-  return { totalPages, hasPrev: page > 0, hasNext: page < totalPages - 1 };
+  return withParam(prev, "page", page > 0 ? String(page) : undefined);
 }
 
 /** "1 ticket", "3 tickets". */
@@ -135,31 +114,8 @@ export const createTicketSchema = z.object({
 
 export type CreateTicketForm = z.infer<typeof createTicketSchema>;
 
-export type CreateTicketErrors = Partial<Record<keyof CreateTicketForm, string>>;
-
 export function emptyCreateTicketForm(): Required<CreateTicketForm> {
   return { customer_id: "", subject: "", description: "", priority: "", channel: "" };
-}
-
-export type CreateTicketValidation =
-  | { success: true; data: CreateTicketForm }
-  | { success: false; errors: CreateTicketErrors };
-
-/** Validates the form; on failure, the first message for each field. */
-export function validateCreateTicket(values: CreateTicketForm): CreateTicketValidation {
-  const result = createTicketSchema.safeParse(values);
-  if (result.success) return { success: true, data: result.data };
-  const errors: CreateTicketErrors = {};
-  for (const issue of result.error.issues) {
-    const field = issue.path[0] as keyof CreateTicketForm | undefined;
-    if (field && !errors[field]) errors[field] = issue.message;
-  }
-  return { success: false, errors };
-}
-
-/** A select's value as a form value: the "none" item means unset. */
-export function fromOptionalSelect(value: string): string {
-  return value === NONE ? "" : value;
 }
 
 /** The API payload for a valid form; empty optional fields are left out. */
@@ -191,14 +147,4 @@ export function ticketFieldUpdate(id: string, field: TicketField, value: string)
 export function assigneeChange(input: string, current: string | null): string | null {
   const val = input.trim();
   return val !== (current ?? "") ? val : null;
-}
-
-export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }

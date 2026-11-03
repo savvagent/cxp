@@ -1,17 +1,14 @@
-// The feedback page's framework-free logic (ported from
-// the React console's src/pages/feedback/index.tsx): the type options and badges, the
-// `feedback_type` URL parameter, what the list asks the API for, and the
-// pagination footer. Kept out of the component so it is tested on its own.
+// The feedback page's framework-free logic: the type options and badges, the
+// `feedback_type` URL parameter, and what the list asks the API for. Kept out
+// of the component so it is tested on its own.
 import type { CatalogFilterValues } from "#lib/catalog-filters.js";
+import { fromFilterSelect } from "#lib/forms.js";
+import { PAGE_SIZE } from "#lib/pagination.js";
 import type { FeedbackListParams } from "#lib/queries/feedback.js";
-
-export const PAGE_SIZE = 20;
+import { withParam } from "#lib/url-state.js";
 
 /** The URL parameter holding the type filter. */
 export const FEEDBACK_TYPE_PARAM = "feedback_type";
-
-/** The select item that clears the type filter. */
-export const ALL = "all";
 
 export const FEEDBACK_TYPES = [
   { value: "bug_report", label: "Bug Report" },
@@ -51,10 +48,7 @@ export function feedbackTypeFromUrl(params: URLSearchParams): string | undefined
  * removes it); every other parameter is kept. `prev` is not modified.
  */
 export function withFeedbackType(prev: URLSearchParams, value: string | undefined): URLSearchParams {
-  const next = new URLSearchParams(prev);
-  if (value && value !== ALL) next.set(FEEDBACK_TYPE_PARAM, value);
-  else next.delete(FEEDBACK_TYPE_PARAM);
-  return next;
+  return withParam(prev, FEEDBACK_TYPE_PARAM, fromFilterSelect(value));
 }
 
 /** What the list asks the API for on zero-based page `page`. */
@@ -68,24 +62,6 @@ export function feedbackListParams(
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
     ...catalog,
-  };
-}
-
-export interface FeedbackPagination {
-  totalPages: number;
-  /** "Showing 21–40 of 45". */
-  range: string;
-  hasPrev: boolean;
-  hasNext: boolean;
-}
-
-export function feedbackPagination(total: number, page: number): FeedbackPagination {
-  const totalPages = Math.ceil(total / PAGE_SIZE);
-  return {
-    totalPages,
-    range: `Showing ${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, total)} of ${total}`,
-    hasPrev: page > 0,
-    hasNext: page < totalPages - 1,
   };
 }
 

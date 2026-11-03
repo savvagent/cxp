@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { catalogFilterHref, paramHref } from "./url";
+import { catalogFilterHref, paramHref, queryHref, searchOf, withParam } from "./url-state";
 
 const at = (href: string) => new URL(href, "http://localhost");
 
@@ -53,5 +53,32 @@ describe("paramHref", () => {
     expect(paramHref(at("/console/catalog/applications?experience_id=e1&x=1"), "experience_id", "")).toBe(
       "/console/catalog/applications?x=1",
     );
+  });
+});
+
+describe("withParam", () => {
+  it("sets or removes one parameter on a copy", () => {
+    const prev = new URLSearchParams("a=1&b=2");
+    expect(withParam(prev, "a", "3").toString()).toBe("a=3&b=2");
+    expect(withParam(prev, "b", undefined).toString()).toBe("a=1");
+    expect(withParam(prev, "b", "").toString()).toBe("a=1");
+    expect(prev.toString()).toBe("a=1&b=2");
+  });
+});
+
+describe("queryHref", () => {
+  it("adds the query only when there is one", () => {
+    expect(queryHref("/console/tickets", new URLSearchParams("status=open"))).toBe("/console/tickets?status=open");
+    expect(queryHref("/console/tickets", new URLSearchParams())).toBe("/console/tickets");
+  });
+});
+
+describe("searchOf", () => {
+  it("is a writable copy of the URL's query", () => {
+    const url = at("/console/feedback?feedback_type=praise");
+    const params = searchOf(url);
+    params.set("x", "1");
+    expect(url.searchParams.has("x")).toBe(false);
+    expect(params.get("feedback_type")).toBe("praise");
   });
 });

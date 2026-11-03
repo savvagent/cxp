@@ -1,7 +1,7 @@
 <script lang="ts">
-  // The tickets list (port of the React console's src/pages/tickets/index.tsx): status,
-  // priority and catalog filters and the page live in the URL under the same
-  // parameter names; rows open the ticket; tickets are created and deleted here.
+  // The tickets list: status, priority and catalog filters and the page live in
+  // the URL under the React console's parameter names; rows open the ticket;
+  // tickets are created and deleted here.
   import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
@@ -19,13 +19,15 @@
   import StatusBadge from "#lib/components/shared/status-badge.svelte";
   import CreateTicketDialog from "#lib/components/tickets/create-ticket-dialog.svelte";
   import CatalogFilterBar from "#lib/components/catalog/catalog-filter-bar.svelte";
+  import { localeDate } from "#lib/format.js";
+  import { ALL } from "#lib/forms.js";
+  import { pageWindow } from "#lib/pagination.js";
+  import { pushUrl, queryHref, searchOf } from "#lib/url-state.js";
   import {
-    ALL,
     PRIORITY_OPTIONS,
     STATUS_OPTIONS,
     hasTicketFilters,
     optionLabel,
-    pagination,
     ticketCount,
     ticketListParams,
     ticketListStateFromUrl,
@@ -38,12 +40,7 @@
   import { createDeleteTicket, createTickets } from "#lib/queries/index.js";
   import type { Ticket } from "#lib/types.js";
 
-  /** A writable copy of the URL's query (Kit's own is read-only). */
-  function currentParams() {
-    return new URLSearchParams(page.url.search);
-  }
-
-  const listState = $derived(ticketListStateFromUrl(new URLSearchParams(page.url.search)));
+  const listState = $derived(ticketListStateFromUrl(searchOf(page.url)));
 
   const tickets = createTickets(() => ticketListParams(listState));
   const deleteTicket = createDeleteTicket();
@@ -55,16 +52,15 @@
   const rows = $derived(tickets.data?.data ?? []);
   const total = $derived(tickets.data?.total ?? 0);
   const hasFilters = $derived(hasTicketFilters(listState));
-  const pages = $derived(pagination(total, listState.page));
+  const pages = $derived(pageWindow(total, listState.page));
 
   /** Moves to the list with `params` as its query, as a new history entry. */
   function setSearchParams(params: URLSearchParams) {
-    const qs = params.toString();
-    void goto(`${resolve("/tickets")}${qs ? `?${qs}` : ""}`, { reset: false });
+    pushUrl(queryHref(resolve("/tickets"), params));
   }
 
   function setFilter(key: "status" | "priority", value: string) {
-    setSearchParams(withTicketFilter(currentParams(), key, value));
+    setSearchParams(withTicketFilter(searchOf(page.url), key, value));
   }
 
   function clearFilters() {
@@ -72,7 +68,7 @@
   }
 
   function setPage(next: number) {
-    setSearchParams(withPage(currentParams(), next));
+    setSearchParams(withPage(searchOf(page.url), next));
   }
 
   function openTicket(ticket: Ticket) {
@@ -203,7 +199,7 @@
                 {ticket.channel ?? "-"}
               </Table.Cell>
               <Table.Cell class="hidden whitespace-nowrap text-muted-foreground lg:table-cell">
-                {new Date(ticket.createdAt).toLocaleDateString()}
+                {localeDate(ticket.createdAt)}
               </Table.Cell>
               <Table.Cell>
                 <Button

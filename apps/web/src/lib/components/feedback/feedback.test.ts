@@ -1,10 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { ALL } from "#lib/forms.js";
+import { PAGE_SIZE } from "#lib/pagination.js";
 import {
-  ALL,
   FEEDBACK_TYPES,
-  PAGE_SIZE,
   feedbackListParams,
-  feedbackPagination,
   feedbackTypeBadgeVariant,
   feedbackTypeFromUrl,
   feedbackTypeLabel,
@@ -75,23 +74,6 @@ describe("feedback list", () => {
       limit: 20,
       offset: 0,
     });
-  });
-
-  it("describes the pagination footer", () => {
-    expect(feedbackPagination(45, 0)).toEqual({
-      totalPages: 3,
-      range: "Showing 1–20 of 45",
-      hasPrev: false,
-      hasNext: true,
-    });
-    expect(feedbackPagination(45, 2)).toEqual({
-      totalPages: 3,
-      range: "Showing 41–45 of 45",
-      hasPrev: true,
-      hasNext: false,
-    });
-    expect(feedbackPagination(20, 0).totalPages).toBe(1);
-    expect(feedbackPagination(0, 0).totalPages).toBe(0);
   });
 
   it("fills one star per rating point", () => {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { validate } from "#lib/forms.js";
 import type { Survey } from "#lib/types.js";
 import {
+  createSurveySchema,
   INVALID_QUESTIONS,
   answersPreview,
   editFormFromSurvey,
@@ -11,7 +13,6 @@ import {
   statusLabel,
   surveyUpdate,
   toCreateSurveyInput,
-  validateCreateSurvey,
 } from "./surveys";
 
 const survey: Survey = {
@@ -55,11 +56,11 @@ describe("create survey form", () => {
   });
 
   it("requires a title", () => {
-    expect(validateCreateSurvey(emptyCreateSurveyForm())).toEqual({
-      success: false,
+    expect(validate(createSurveySchema, emptyCreateSurveyForm())).toEqual({
+      ok: false,
       errors: { title: "Title is required" },
     });
-    expect(validateCreateSurvey({ title: "T" }).success).toBe(true);
+    expect(validate(createSurveySchema, { title: "T" }).ok).toBe(true);
   });
 
   it("builds the payload: title as typed, empty description left out, questions parsed", () => {

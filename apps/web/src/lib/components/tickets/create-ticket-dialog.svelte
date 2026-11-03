@@ -1,7 +1,6 @@
 <script lang="ts">
-  // The tickets list's "New Ticket" dialog (port of the create dialog in
-  // the React console's src/pages/tickets/index.tsx): the same fields, zod validation
-  // (on submit, then on every edit), payload and toasts.
+  // The tickets list's "New Ticket" dialog: the same fields, zod validation
+  // (on submit, then on every edit), payload and toasts as the React console's.
   import { toast } from "svelte-sonner";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Dialog from "#lib/components/ui/dialog/index.js";
@@ -9,16 +8,15 @@
   import { Label } from "#lib/components/ui/label/index.js";
   import * as Select from "#lib/components/ui/select/index.js";
   import { Textarea } from "#lib/components/ui/textarea/index.js";
+  import { NONE, fromOptionalSelect, validate } from "#lib/forms.js";
   import { createCreateTicket } from "#lib/queries/index.js";
   import {
     CHANNEL_OPTIONS,
-    NONE,
     PRIORITY_OPTIONS,
+    createTicketSchema,
     emptyCreateTicketForm,
-    fromOptionalSelect,
     optionLabel,
     toCreateTicketInput,
-    validateCreateTicket,
     type Option,
   } from "./tickets.js";
 
@@ -38,8 +36,8 @@
     priority: fromOptionalSelect(priorityChoice),
     channel: fromOptionalSelect(channelChoice),
   });
-  const validation = $derived(validateCreateTicket(values));
-  const errors = $derived(attempted && !validation.success ? validation.errors : {});
+  const validation = $derived(validate(createTicketSchema, values));
+  const errors = $derived(attempted && !validation.ok ? validation.errors : {});
 
   function reset() {
     form = emptyCreateTicketForm();
@@ -66,7 +64,7 @@
   async function onsubmit(event: SubmitEvent) {
     event.preventDefault();
     attempted = true;
-    if (!validation.success) return;
+    if (!validation.ok) return;
     try {
       await createTicket.mutateAsync(toCreateTicketInput(validation.data));
       toast.success("Ticket created");

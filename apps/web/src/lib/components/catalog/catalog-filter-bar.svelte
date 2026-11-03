@@ -1,17 +1,17 @@
 <script lang="ts">
-  // Port of the React console's src/components/shared/catalog-filter-bar.tsx. Where the
-  // React bar took `value`/`onChange` and each page wired them to
+  // The catalog filters of the customers, tickets, feedback and surveys lists.
+  // Where the React bar took `value`/`onChange` and each page wired them to
   // `useSearchParams`, this one reads and writes the URL itself (the same
   // `experience_id`, `application_id`, `page_id`, `component_id` parameters),
   // so a page only renders it and reads `catalogFiltersFromUrl(searchOf(page.url))`.
   import FilterX from "@lucide/svelte/icons/filter-x";
-  import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import { catalogFiltersFromUrl, type CatalogFilterValues } from "#lib/catalog-filters.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Select from "#lib/components/ui/select/index.js";
+  import { ALL, fromFilterSelect } from "#lib/forms.js";
   import { createApplications, createComponents, createExperiences, createPages } from "#lib/queries/index.js";
-  import { catalogFilterHref, searchOf } from "./url.js";
+  import { catalogFilterHref, pushUrl, searchOf } from "#lib/url-state.js";
 
   let {
     resetParams = [],
@@ -25,9 +25,6 @@
      */
     onChange?: (values: CatalogFilterValues) => void;
   } = $props();
-
-  /** The "no filter" select value (React's `_all`); `url.ts`'s `ALL` is the parent filters' own. */
-  const ANY = "_all";
 
   const experiences = createExperiences(() => ({ limit: 200 }));
   const applications = createApplications(() => ({ limit: 200 }));
@@ -61,10 +58,9 @@
 
   function apply(next: CatalogFilterValues) {
     // React updated the caller's state and the URL in one batch; do the same, so the list never
-    // queries the new filters with a stale offset. `setSearchParams` pushed a history entry and
-    // left scroll and focus alone.
+    // queries the new filters with a stale offset.
     onChange?.(next);
-    void goto(catalogFilterHref(page.url, next, resetParams), { reset: false });
+    pushUrl(catalogFilterHref(page.url, next, resetParams));
   }
 
   function setFilter(key: keyof CatalogFilterValues, v: string | undefined) {
@@ -81,13 +77,13 @@
   {#each filters as f (f.key)}
     <Select.Root
       type="single"
-      bind:value={() => value[f.key] ?? ANY, (v) => setFilter(f.key, v === ANY ? undefined : v)}
+      bind:value={() => value[f.key] ?? ALL, (v) => setFilter(f.key, fromFilterSelect(v))}
     >
       <Select.Trigger class="w-[180px]" aria-label={f.aria}>
         <span class="truncate">{label(f.items, value[f.key], f.all)}</span>
       </Select.Trigger>
       <Select.Content>
-        <Select.Item value={ANY} label={f.all} />
+        <Select.Item value={ALL} label={f.all} />
         {#each f.items as item (item.id)}
           <Select.Item value={item.id} label={item.name} />
         {/each}

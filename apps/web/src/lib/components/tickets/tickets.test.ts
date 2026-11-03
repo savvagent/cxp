@@ -1,21 +1,18 @@
 import { describe, expect, it } from "vitest";
+import { ALL, validate } from "#lib/forms.js";
+import { PAGE_SIZE } from "#lib/pagination.js";
 import {
-  ALL,
-  NONE,
-  PAGE_SIZE,
   assigneeChange,
+  createTicketSchema,
   emptyCreateTicketForm,
-  fromOptionalSelect,
   hasTicketFilters,
   optionLabel,
-  pagination,
   STATUS_OPTIONS,
   ticketCount,
   ticketFieldUpdate,
   ticketListParams,
   ticketListStateFromUrl,
   toCreateTicketInput,
-  validateCreateTicket,
   withPage,
   withTicketFilter,
 } from "./tickets";
@@ -90,13 +87,6 @@ describe("tickets list URL state", () => {
     expect(prev.toString()).toBe("status=open&page=2");
   });
 
-  it("pages through the total", () => {
-    expect(pagination(0, 0)).toEqual({ totalPages: 0, hasPrev: false, hasNext: false });
-    expect(pagination(PAGE_SIZE, 0)).toEqual({ totalPages: 1, hasPrev: false, hasNext: false });
-    expect(pagination(PAGE_SIZE * 2 + 1, 0)).toEqual({ totalPages: 3, hasPrev: false, hasNext: true });
-    expect(pagination(PAGE_SIZE * 2 + 1, 2)).toEqual({ totalPages: 3, hasPrev: true, hasNext: false });
-  });
-
   it("counts tickets", () => {
     expect(ticketCount(0)).toBe("0 tickets");
     expect(ticketCount(1)).toBe("1 ticket");
@@ -111,16 +101,16 @@ describe("tickets list URL state", () => {
 
 describe("create ticket form", () => {
   it("requires a customer id and a subject, with the old messages", () => {
-    const result = validateCreateTicket(emptyCreateTicketForm());
+    const result = validate(createTicketSchema, emptyCreateTicketForm());
     expect(result).toEqual({
-      success: false,
+      ok: false,
       errors: { customer_id: "Customer ID is required", subject: "Subject is required" },
     });
   });
 
   it("accepts a form with only the required fields", () => {
     const values = { ...emptyCreateTicketForm(), customer_id: "c1", subject: "Broken" };
-    expect(validateCreateTicket(values)).toEqual({ success: true, data: values });
+    expect(validate(createTicketSchema, values)).toEqual({ ok: true, data: values });
   });
 
   it("sends empty optional fields as unset", () => {
@@ -142,12 +132,6 @@ describe("create ticket form", () => {
         channel: "email",
       }),
     ).toEqual({ customerId: "c1", subject: "Broken", description: "It broke", priority: "high", channel: "email" });
-  });
-
-  it("reads the none item as unset", () => {
-    expect(fromOptionalSelect(NONE)).toBe("");
-    expect(fromOptionalSelect("chat")).toBe("chat");
-    expect(fromOptionalSelect("")).toBe("");
   });
 });
 

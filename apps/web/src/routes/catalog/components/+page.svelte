@@ -11,7 +11,6 @@
     componentUpdateInput,
     deleteDescription,
     pageName,
-    showingLine,
     teamName,
     type ComponentForm,
   } from "#lib/components/catalog/forms.js";
@@ -24,6 +23,8 @@
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
   import PageHeader from "#lib/components/shared/page-header.svelte";
   import * as Table from "#lib/components/ui/table/index.js";
+  import { localeDate } from "#lib/format.js";
+  import { PAGE_SIZE, showingLine } from "#lib/pagination.js";
   import {
     createComponents,
     createCreateComponent,
@@ -34,7 +35,6 @@
   } from "#lib/queries/index.js";
   import type { Component } from "#lib/types.js";
 
-  const PAGE_SIZE = 20;
   const currentPage = 0;
 
   let createOpen = $state(false);
@@ -155,7 +155,7 @@
                 {comp.description ?? "—"}
               </Table.Cell>
               <Table.Cell class="hidden text-sm text-muted-foreground md:table-cell">
-                {new Date(comp.createdAt).toLocaleDateString()}
+                {localeDate(comp.createdAt)}
               </Table.Cell>
               <Table.Cell>
                 <RowActions noun="component" onEdit={() => (editTarget = comp)} onDelete={() => (deleteTarget = comp)} />

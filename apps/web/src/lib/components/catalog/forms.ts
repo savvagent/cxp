@@ -51,23 +51,6 @@ export type ComponentForm = z.infer<typeof componentSchema>;
 
 /** A form's values as the dialog edits them: every field a string. */
 export type FormValues = Record<string, string>;
-/** The first message for each invalid field. */
-export type FormErrors = Partial<Record<string, string>>;
-
-/** Validates `values`; on failure, the first message per field. */
-export function validate<T>(
-  schema: z.ZodType<T>,
-  values: FormValues,
-): { ok: true; data: T } | { ok: false; errors: FormErrors } {
-  const result = schema.safeParse(values);
-  if (result.success) return { ok: true, data: result.data };
-  const errors: FormErrors = {};
-  for (const issue of result.error.issues) {
-    const key = String(issue.path[0] ?? "");
-    if (!(key in errors)) errors[key] = issue.message;
-  }
-  return { ok: false, errors };
-}
 
 // Initial values: an edited record's fields, or the React forms' defaults
 // (empty strings) for a new one.
@@ -204,11 +187,6 @@ export function teamName(teams: readonly MyTeam[], id: string): string {
 export function pageName(pages: readonly Page[], id: string): string {
   const pg = pages.find((p) => p.id === id);
   return pg ? `${pg.name}${pg.path ? ` (${pg.path})` : ""}` : id.slice(0, 8);
-}
-
-/** The "Showing n of total" footer, shown only past one page (as React did). */
-export function showingLine(pageSize: number, shown: number, total: number, noun: string): string | null {
-  return total > pageSize ? `Showing ${Math.min(pageSize, shown)} of ${total} ${noun}` : null;
 }
 
 /** The delete confirmation's text. */

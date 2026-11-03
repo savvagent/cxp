@@ -4,7 +4,8 @@
   import { Badge } from "#lib/components/ui/badge/index.js";
   import * as Table from "#lib/components/ui/table/index.js";
   import type { Interaction } from "#lib/types.js";
-  import { formatDateTime, humanize } from "./customers.js";
+  import { formatDateTime } from "#lib/format.js";
+  import { humanize } from "./customers.js";
 
   let { interactions }: { interactions: Interaction[] } = $props();
 </script>

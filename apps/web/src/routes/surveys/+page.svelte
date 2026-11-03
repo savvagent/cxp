@@ -1,6 +1,5 @@
 <script lang="ts">
-  // The surveys list (port of the React console's src/pages/surveys/index.tsx): the first
-  // page of surveys under the catalog filters (in the URL), a "New Survey"
+  // The surveys list: the first page of surveys under the catalog filters (in the URL), a "New Survey"
   // dialog, row navigation to /surveys/<id>, and a per-row delete.
   import ClipboardList from "@lucide/svelte/icons/clipboard-list";
   import Trash2 from "@lucide/svelte/icons/trash-2";
@@ -10,22 +9,19 @@
   import { toast } from "svelte-sonner";
   import { catalogFiltersFromUrl } from "#lib/catalog-filters.js";
   import CatalogFilterBar from "#lib/components/catalog/catalog-filter-bar.svelte";
-  import { searchOf } from "#lib/components/catalog/url.js";
   import ConfirmDialog from "#lib/components/shared/confirm-dialog.svelte";
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
   import PageHeader from "#lib/components/shared/page-header.svelte";
   import CreateSurveyDialog from "#lib/components/surveys/create-survey-dialog.svelte";
-  import {
-    ACTIVE_BADGE_CLASS,
-    PAGE_SIZE,
-    questionCount,
-    statusLabel,
-  } from "#lib/components/surveys/surveys.js";
+  import { ACTIVE_BADGE_CLASS, questionCount, statusLabel } from "#lib/components/surveys/surveys.js";
   import { Badge } from "#lib/components/ui/badge/index.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Table from "#lib/components/ui/table/index.js";
+  import { localeDate } from "#lib/format.js";
+  import { PAGE_SIZE, showingLine } from "#lib/pagination.js";
   import { createDeleteSurvey, createSurveys } from "#lib/queries/index.js";
+  import { searchOf } from "#lib/url-state.js";
   import type { Survey } from "#lib/types.js";
 
   let createOpen = $state(false);
@@ -39,6 +35,7 @@
 
   const items = $derived(surveys.data?.data ?? []);
   const total = $derived(surveys.data?.total ?? 0);
+  const showing = $derived(showingLine(PAGE_SIZE, items.length, total, "surveys"));
 
   function openSurvey(survey: Survey) {
     void goto(resolve("/surveys/[id]", { id: survey.id }));
@@ -107,7 +104,7 @@
               </Table.Cell>
               <Table.Cell>{questionCount(survey.questions)}</Table.Cell>
               <Table.Cell class="hidden text-sm text-muted-foreground md:table-cell">
-                {new Date(survey.createdAt).toLocaleDateString()}
+                {localeDate(survey.createdAt)}
               </Table.Cell>
               <Table.Cell>
                 <Button
@@ -126,10 +123,8 @@
     </div>
   {/if}
 
-  {#if total > PAGE_SIZE}
-    <p class="text-sm text-muted-foreground">
-      Showing {Math.min(PAGE_SIZE, items.length)} of {total} surveys
-    </p>
+  {#if showing}
+    <p class="text-sm text-muted-foreground">{showing}</p>
   {/if}
 
   <CreateSurveyDialog bind:open={createOpen} />

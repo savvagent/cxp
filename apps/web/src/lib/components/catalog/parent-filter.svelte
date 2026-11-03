@@ -2,12 +2,12 @@
   // The filter row of the applications, pages and components lists: one
   // select over the parent level, kept in one URL parameter (`experience_id`,
   // `application_id` or `page_id`, as in the React console), and "Clear filter".
-  import { goto } from "$app/navigation";
   import { page } from "$app/state";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Select from "#lib/components/ui/select/index.js";
+  import { ALL, fromFilterSelect } from "#lib/forms.js";
+  import { paramHref, pushUrl } from "#lib/url-state.js";
   import type { CatalogOption } from "./options.js";
-  import { ALL, paramHref } from "./url.js";
 
   let {
     param,
@@ -29,13 +29,12 @@
   const selected = $derived(value ? options.find((o) => o.value === value) : undefined);
 
   function setFilter(v: string | undefined) {
-    // `setSearchParams` pushed a history entry and left scroll and focus alone.
-    void goto(paramHref(page.url, param, v), { reset: false });
+    pushUrl(paramHref(page.url, param, v));
   }
 </script>
 
 <div class="flex flex-wrap items-center gap-3">
-  <Select.Root type="single" bind:value={() => value ?? ALL, (v) => setFilter(v === ALL ? undefined : v)}>
+  <Select.Root type="single" bind:value={() => value ?? ALL, (v) => setFilter(fromFilterSelect(v))}>
     <Select.Trigger class={className} aria-label={ariaLabel}>
       <span class="truncate">
         {#if !value}

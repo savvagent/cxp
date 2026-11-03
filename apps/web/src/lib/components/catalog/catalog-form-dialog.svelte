@@ -11,9 +11,9 @@
   import * as Select from "#lib/components/ui/select/index.js";
   import { Textarea } from "#lib/components/ui/textarea/index.js";
   import type { MyTeam } from "#lib/types.js";
-  import { validate, type FormValues } from "./forms.js";
+  import { NONE, fromOptionalSelect, validate, type FieldErrors } from "#lib/forms.js";
+  import type { FormValues } from "./forms.js";
   import type { CatalogOption } from "./options.js";
-  import { NONE } from "./url.js";
 
   interface FieldSpec {
     /** The form field (the React form's snake_case name). */
@@ -72,7 +72,7 @@
 
   // Like react-hook-form's defaults: no errors until the first submit, then
   // revalidated on every change.
-  const errors = $derived.by(() => {
+  const errors = $derived.by((): FieldErrors => {
     if (!submitted) return {};
     const result = validate(schema, values);
     return result.ok ? {} : result.errors;
@@ -106,7 +106,7 @@
         <Label for={`${idPrefix}-team`}>Team</Label>
         <Select.Root
           type="single"
-          bind:value={() => values.team_id || NONE, (v) => (values.team_id = v === NONE ? "" : v)}
+          bind:value={() => values.team_id || NONE, (v) => (values.team_id = fromOptionalSelect(v))}
         >
           <Select.Trigger id={`${idPrefix}-team`} class="w-full">
             <span class="truncate" class:text-muted-foreground={!values.team_id}>{teamLabel}</span>
@@ -128,7 +128,7 @@
           <Label for={`${idPrefix}-${parent.idSuffix}`}>{parent.label}</Label>
           <Select.Root
             type="single"
-            bind:value={() => values[parent.field] || NONE, (v) => (values[parent.field] = v === NONE ? "" : v)}
+            bind:value={() => values[parent.field] || NONE, (v) => (values[parent.field] = fromOptionalSelect(v))}
           >
             <Select.Trigger id={`${idPrefix}-${parent.idSuffix}`} class="w-full">
               <span class="truncate" class:text-muted-foreground={!values[parent.field]}>

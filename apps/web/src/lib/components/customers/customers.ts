@@ -1,11 +1,9 @@
 // The customers pages' framework-free logic, as the React pages had it: the
 // create/edit form schema and its mapping to the API, the list's client-side
-// search and paging, and the dates and labels the pages show.
+// search, and the labels the pages show.
 import { z } from "#lib/zod.js";
+import { validate, type FieldErrors } from "#lib/forms.js";
 import type { Customer } from "#lib/types.js";
-
-/** One page of the customer list (offset-based). */
-export const PAGE_SIZE = 50;
 
 /** The create and edit customer forms: email required, everything else optional. */
 export const customerFormSchema = z.object({
@@ -19,7 +17,7 @@ export const customerFormSchema = z.object({
 export type CustomerForm = z.infer<typeof customerFormSchema>;
 
 /** The form's field errors: the first message per field. */
-export type CustomerFormErrors = Partial<Record<keyof CustomerForm, string>>;
+export type CustomerFormErrors = FieldErrors<keyof CustomerForm>;
 
 /** The new-customer form's starting values. */
 export const EMPTY_CUSTOMER_FORM: Required<CustomerForm> = {
@@ -54,15 +52,8 @@ export function parseCustomerForm(
       data: { email: string; name?: string; phone?: string; company?: string; tags: string[] };
     }
   | { ok: false; errors: CustomerFormErrors } {
-  const result = customerFormSchema.safeParse(values);
-  if (!result.success) {
-    const errors: CustomerFormErrors = {};
-    for (const issue of result.error.issues) {
-      const field = issue.path[0] as keyof CustomerForm | undefined;
-      if (field && !errors[field]) errors[field] = issue.message;
-    }
-    return { ok: false, errors };
-  }
+  const result = validate(customerFormSchema, values);
+  if (!result.ok) return result;
   const v = result.data;
   return {
     ok: true,
@@ -102,41 +93,9 @@ export function filterCustomers(customers: Customer[], search: string): Customer
   );
 }
 
-/** The list's paging state at `offset` of `total`. */
-export function pagination(offset: number, total: number) {
-  return {
-    hasPrev: offset > 0,
-    hasNext: offset + PAGE_SIZE < total,
-    from: offset + 1,
-    to: Math.min(offset + PAGE_SIZE, total),
-    prevOffset: Math.max(0, offset - PAGE_SIZE),
-    nextOffset: offset + PAGE_SIZE,
-  };
-}
-
 /** A customer's name, or its email without one. */
 export function displayName(customer: Customer): string {
   return customer.name ?? customer.email;
-}
-
-/** `Jan 5, 2026`. */
-export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-
-/** `Jan 5, 2026, 3:04 PM`. */
-export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
 }
 
 /** An enum value as a badge shows it: `page_view` reads `page view`. */

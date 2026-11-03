@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { validate } from "#lib/forms.js";
+import { showingLine } from "#lib/pagination.js";
 import type { Application, Component, Experience, Page } from "#lib/types.js";
 import {
   applicationCreateInput,
@@ -20,9 +22,7 @@ import {
   pageName,
   pageSchema,
   pageUpdateInput,
-  showingLine,
   teamName,
-  validate,
 } from "./forms";
 
 const base = { metadata: {}, createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" };

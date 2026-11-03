@@ -1,7 +1,6 @@
 <script lang="ts">
-  // The surveys list's "New Survey" dialog (port of `CreateSurveyDialog` in
-  // the React console's src/pages/surveys/index.tsx): the same fields, zod validation (on
-  // submit, then on every edit), payload and toasts. As with react-hook-form,
+  // The surveys list's "New Survey" dialog: the same fields, zod validation (on
+  // submit, then on every edit), payload and toasts as the React console's. As with react-hook-form,
   // the values survive closing the dialog and are cleared only by a create.
   import { toast } from "svelte-sonner";
   import { Button } from "#lib/components/ui/button/index.js";
@@ -9,12 +8,13 @@
   import { Input } from "#lib/components/ui/input/index.js";
   import { Label } from "#lib/components/ui/label/index.js";
   import { Textarea } from "#lib/components/ui/textarea/index.js";
+  import { validate } from "#lib/forms.js";
   import { createCreateSurvey } from "#lib/queries/index.js";
   import {
     QUESTIONS_PLACEHOLDER,
+    createSurveySchema,
     emptyCreateSurveyForm,
     toCreateSurveyInput,
-    validateCreateSurvey,
   } from "./surveys.js";
 
   let { open = $bindable(false) }: { open?: boolean } = $props();
@@ -25,13 +25,13 @@
   // Errors show once a submit has been tried, then follow every edit.
   let attempted = $state(false);
 
-  const validation = $derived(validateCreateSurvey(form));
-  const errors = $derived(attempted && !validation.success ? validation.errors : {});
+  const validation = $derived(validate(createSurveySchema, form));
+  const errors = $derived(attempted && !validation.ok ? validation.errors : {});
 
   async function onsubmit(event: SubmitEvent) {
     event.preventDefault();
     attempted = true;
-    if (!validation.success) return;
+    if (!validation.ok) return;
     const built = toCreateSurveyInput(validation.data);
     if (!built.ok) {
       toast.error(built.message);

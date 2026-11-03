@@ -5,7 +5,7 @@
   import StatusBadge from "#lib/components/shared/status-badge.svelte";
   import * as Table from "#lib/components/ui/table/index.js";
   import type { TicketSummary } from "#lib/types.js";
-  import { formatDate } from "./customers.js";
+  import { formatDate } from "#lib/format.js";
 
   let { tickets }: { tickets: TicketSummary[] } = $props();
 </script>

@@ -1,13 +1,10 @@
-// The survey pages' framework-free logic (ported from
-// the React console's src/pages/surveys/index.tsx and survey-detail.tsx): the create
-// form's schema and payload, the detail page's edit form and update, and how
-// questions and answers are shown. Kept out of the components so it is tested
-// on its own. (`responsesCount` is shared, in `#lib/surveys.js`.)
+// The survey pages' framework-free logic: the create form's schema and
+// payload, the detail page's edit form and update, and how questions and
+// answers are shown. Kept out of the components so it is tested on its own.
+// (`responsesCount` is shared, in `#lib/surveys.js`.)
 import { z } from "#lib/zod.js";
 import type { CreateSurveyInput, UpdateSurveyInput } from "#lib/queries/surveys.js";
 import type { Survey } from "#lib/types.js";
-
-export const PAGE_SIZE = 20;
 
 /** The questions textareas' placeholder. */
 export const QUESTIONS_PLACEHOLDER = '[{"id": "q1", "text": "How satisfied are you?", "type": "rating"}]';
@@ -52,26 +49,8 @@ export const createSurveySchema = z.object({
 
 export type CreateSurveyForm = z.infer<typeof createSurveySchema>;
 
-export type CreateSurveyErrors = Partial<Record<keyof CreateSurveyForm, string>>;
-
 export function emptyCreateSurveyForm(): Required<CreateSurveyForm> {
   return { title: "", description: "", questionsRaw: "" };
-}
-
-export type CreateSurveyValidation =
-  | { success: true; data: CreateSurveyForm }
-  | { success: false; errors: CreateSurveyErrors };
-
-/** Validates the form; on failure, the first message for each field. */
-export function validateCreateSurvey(values: CreateSurveyForm): CreateSurveyValidation {
-  const result = createSurveySchema.safeParse(values);
-  if (result.success) return { success: true, data: result.data };
-  const errors: CreateSurveyErrors = {};
-  for (const issue of result.error.issues) {
-    const field = issue.path[0] as keyof CreateSurveyForm | undefined;
-    if (field && !errors[field]) errors[field] = issue.message;
-  }
-  return { success: false, errors };
 }
 
 /**

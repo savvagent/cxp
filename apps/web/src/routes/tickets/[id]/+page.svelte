@@ -1,6 +1,5 @@
 <script lang="ts">
-  // One ticket (port of the React console's src/pages/tickets/ticket-detail.tsx): its
-  // subject, description and tags, and a properties panel that saves status,
+  // One ticket: its subject, description and tags, and a properties panel that saves status,
   // priority and assignee as each one changes.
   import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
@@ -15,7 +14,6 @@
     PRIORITY_OPTIONS,
     STATUS_OPTIONS,
     assigneeChange,
-    formatDateTime,
     optionLabel,
     ticketFieldUpdate,
     type TicketField,
@@ -27,6 +25,7 @@
   import { Label } from "#lib/components/ui/label/index.js";
   import * as Select from "#lib/components/ui/select/index.js";
   import { Separator } from "#lib/components/ui/separator/index.js";
+  import { formatLocaleDateTime } from "#lib/format.js";
   import { createTicket, createUpdateTicket } from "#lib/queries/index.js";
 
   const ticketQuery = createTicket(() => page.params.id);
@@ -206,20 +205,20 @@
             <div class="space-y-3">
               <div>
                 <p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Created</p>
-                <p class="mt-0.5 text-sm">{formatDateTime(ticket.createdAt)}</p>
+                <p class="mt-0.5 text-sm">{formatLocaleDateTime(ticket.createdAt)}</p>
               </div>
               <div>
                 <p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                   Last Updated
                 </p>
-                <p class="mt-0.5 text-sm">{formatDateTime(ticket.updatedAt)}</p>
+                <p class="mt-0.5 text-sm">{formatLocaleDateTime(ticket.updatedAt)}</p>
               </div>
               {#if ticket.resolvedAt}
                 <div>
                   <p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                     Resolved
                   </p>
-                  <p class="mt-0.5 text-sm">{formatDateTime(ticket.resolvedAt)}</p>
+                  <p class="mt-0.5 text-sm">{formatLocaleDateTime(ticket.resolvedAt)}</p>
                 </div>
               {/if}
             </div>

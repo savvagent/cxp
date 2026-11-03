@@ -12,13 +12,7 @@
   import { catalogFiltersFromUrl } from "#lib/catalog-filters.js";
   import CatalogFilterBar from "#lib/components/catalog/catalog-filter-bar.svelte";
   import CustomerRowActions from "#lib/components/customers/customer-row-actions.svelte";
-  import {
-    PAGE_SIZE,
-    displayName,
-    filterCustomers,
-    formatDate,
-    pagination,
-  } from "#lib/components/customers/customers.js";
+  import { displayName, filterCustomers } from "#lib/components/customers/customers.js";
   import NewCustomerDialog from "#lib/components/customers/new-customer-dialog.svelte";
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
@@ -27,23 +21,27 @@
   import { Button } from "#lib/components/ui/button/index.js";
   import { Input } from "#lib/components/ui/input/index.js";
   import * as Table from "#lib/components/ui/table/index.js";
+  import { formatDate } from "#lib/format.js";
+  import { CUSTOMER_PAGE_SIZE, pageWindow } from "#lib/pagination.js";
   import { createCustomers } from "#lib/queries/index.js";
+  import { searchOf } from "#lib/url-state.js";
 
   let newDialogOpen = $state(false);
   let search = $state("");
-  let offset = $state(0);
+  /** Zero-based page number; local state, as in the React console, not the URL. */
+  let pageIndex = $state(0);
 
-  const catalogFilters = $derived(catalogFiltersFromUrl(new URLSearchParams(page.url.search)));
+  const catalogFilters = $derived(catalogFiltersFromUrl(searchOf(page.url)));
 
   const customersQuery = createCustomers(() => ({
-    limit: PAGE_SIZE,
-    offset,
+    limit: CUSTOMER_PAGE_SIZE,
+    offset: pageIndex * CUSTOMER_PAGE_SIZE,
     ...catalogFilters,
   }));
 
   const customers = $derived(filterCustomers(customersQuery.data?.data ?? [], search));
   const total = $derived(customersQuery.data?.total ?? 0);
-  const paging = $derived(pagination(offset, total));
+  const paging = $derived(pageWindow(total, pageIndex, CUSTOMER_PAGE_SIZE));
 
   function handleRowClick(id: string) {
     void goto(resolve("/customers/[id]", { id }));
@@ -60,7 +58,7 @@
 
   <!-- Catalog filters -->
   <!-- The bar writes the filters to the URL itself; a change returns to the first page. -->
-  <CatalogFilterBar onChange={() => (offset = 0)} />
+  <CatalogFilterBar onChange={() => (pageIndex = 0)} />
 
   <!-- Search -->
   <div class="relative max-w-sm">
@@ -74,7 +72,7 @@
       value={search}
       oninput={(e) => {
         search = e.currentTarget.value;
-        offset = 0; // reset pagination on new search
+        pageIndex = 0; // reset pagination on new search
       }}
       aria-label="Search customers"
     />
@@ -164,14 +162,14 @@
   {/if}
 
   <!-- Pagination -->
-  {#if !customersQuery.isLoading && total > PAGE_SIZE && !search}
+  {#if !customersQuery.isLoading && total > CUSTOMER_PAGE_SIZE && !search}
     <div class="flex items-center justify-between text-sm text-muted-foreground">
       <span>{paging.from}–{paging.to} of {total} customers</span>
       <div class="flex gap-2">
         <Button
           variant="outline"
           size="sm"
-          onclick={() => (offset = paging.prevOffset)}
+          onclick={() => (pageIndex -= 1)}
           disabled={!paging.hasPrev}
           aria-label="Previous page"
         >
@@ -181,7 +179,7 @@
         <Button
           variant="outline"
           size="sm"
-          onclick={() => (offset = paging.nextOffset)}
+          onclick={() => (pageIndex += 1)}
           disabled={!paging.hasNext}
           aria-label="Next page"
         >
