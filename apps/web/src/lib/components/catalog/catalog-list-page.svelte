@@ -5,6 +5,7 @@
   // One catalog level's list page: the parent filter (none for experiences),
   // the first page of records, the create/edit dialog and the delete
   // confirmation. What differs between the levels comes in `config`.
+  import { m } from "#lib/paraglide/messages.js";
   import { untrack } from "svelte";
   import { toast } from "svelte-sonner";
   import { toastError } from "#lib/errors.js";
@@ -51,7 +52,7 @@
   const parents = $derived(parentQuery?.data?.data ?? []);
   const parentOptions = $derived(config.parent ? config.parent.options(parents) : []);
   const teams = $derived(myTeams.data ?? []);
-  const showing = $derived(showingLine(PAGE_SIZE, items.length, total, config.plural));
+  const showing = $derived(showingLine(PAGE_SIZE, items.length, total, config.text.showing));
 
   function closeDialog(open: boolean) {
     if (!open) {
@@ -66,10 +67,10 @@
       if (editing) await updateRecord.mutateAsync(config.form.updateInput(editing.id, values));
       else await createRecord.mutateAsync(config.form.createInput(values));
     } catch (err) {
-      toastError(err, "Failed", "prefix");
+      toastError(err, m.common_failed(), "prefix");
       return;
     }
-    toast.success(`${config.singular} ${editing ? "updated" : "created"}`);
+    toast.success(editing ? config.text.updated : config.text.created);
     closeDialog(false);
   }
 
@@ -78,16 +79,16 @@
     try {
       await deleteRecord.mutateAsync(deleteTarget.id);
     } catch (err) {
-      toastError(err, "Failed", "prefix");
+      toastError(err, m.common_failed(), "prefix");
       return;
     }
-    toast.success(`${config.singular} deleted`);
+    toast.success(config.text.deleted);
     deleteTarget = null;
   }
 </script>
 
 <div class="space-y-6">
-  <PageHeader title={config.title} action={`New ${config.singular}`} onAction={() => (createOpen = true)} />
+  <PageHeader title={config.text.title} action={config.text.create} onAction={() => (createOpen = true)} />
 
   {#if config.parent}
     <ParentFilter
@@ -104,9 +105,9 @@
   {:else if items.length === 0}
     <EmptyState
       icon={config.icon}
-      title={`No ${config.plural} yet`}
-      description={config.emptyDescription}
-      action={`New ${config.singular}`}
+      title={config.text.empty}
+      description={config.text.emptyDescription}
+      action={config.text.create}
       onAction={() => (createOpen = true)}
     />
   {:else}
@@ -114,14 +115,14 @@
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head class="w-[100px]">ID</Table.Head>
-            <Table.Head>Name</Table.Head>
-            <Table.Head class="hidden sm:table-cell">Team</Table.Head>
+            <Table.Head class="w-[100px]">{m.label_id()}</Table.Head>
+            <Table.Head>{m.label_name()}</Table.Head>
+            <Table.Head class="hidden sm:table-cell">{m.label_team()}</Table.Head>
             {#each config.columns as col (col.head)}
               <Table.Head class={col.headClass}>{col.head}</Table.Head>
             {/each}
-            <Table.Head class={config.description.headClass}>Description</Table.Head>
-            <Table.Head class="hidden md:table-cell">Created At</Table.Head>
+            <Table.Head class={config.description.headClass}>{m.label_description()}</Table.Head>
+            <Table.Head class="hidden md:table-cell">{m.label_created_at()}</Table.Head>
             <Table.Head class="w-[100px]" />
           </Table.Row>
         </Table.Header>
@@ -146,7 +147,8 @@
               </Table.Cell>
               <Table.Cell>
                 <RowActions
-                  noun={config.noun}
+                  editLabel={config.text.editAria}
+                  deleteLabel={config.text.deleteAria}
                   onEdit={() => (editTarget = item)}
                   onDelete={() => (deleteTarget = item)}
                 />
@@ -165,7 +167,7 @@
   <CatalogFormDialog
     open={createOpen || !!editTarget}
     onOpenChange={closeDialog}
-    title={editTarget ? `Edit ${config.singular}` : `New ${config.singular}`}
+    title={editTarget ? config.text.edit : config.text.create}
     idPrefix={config.form.idPrefix}
     schema={config.form.schema}
     initial={config.form.initial(editTarget)}
@@ -183,7 +185,7 @@
     onOpenChange={(open) => {
       if (!open) deleteTarget = null;
     }}
-    title={`Delete ${config.singular}`}
+    title={config.text.delete}
     description={deleteDescription(deleteTarget?.name)}
     onConfirm={handleDelete}
     loading={deleteRecord.isPending}

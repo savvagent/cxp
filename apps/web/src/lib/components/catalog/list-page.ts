@@ -48,17 +48,37 @@ export interface CatalogParent<P> {
   field: { field: string; label: string; idSuffix: string };
 }
 
-export interface CatalogListConfig<T extends CatalogRecord, F, ListParams, CreateInput, UpdateData, P> {
+/**
+ * A level's words, each a whole message in the active locale. Never built by
+ * joining a noun into a phrase ("New " + "Application"): the phrase's grammar
+ * depends on the noun's gender in most of the console's languages.
+ */
+export interface CatalogText {
   /** The page heading, e.g. "Applications". */
   title: string;
-  /** Capitalized singular, e.g. "Application" ("New Application", "Application created"). */
-  singular: string;
-  /** Lower-case singular, e.g. "application" (the row buttons' labels). */
-  noun: string;
-  /** Lower-case plural, e.g. "applications" (the empty state and the footer). */
-  plural: string;
-  icon: Component;
+  /** "New Application": the header button, the empty state's and the create dialog's title. */
+  create: string;
+  /** "Edit Application": the edit dialog's title. */
+  edit: string;
+  /** "Delete Application": the delete confirmation's title. */
+  delete: string;
+  created: string;
+  updated: string;
+  deleted: string;
+  /** "Edit application", "Delete application": the row buttons' accessible names. */
+  editAria: string;
+  deleteAria: string;
+  /** "No applications yet". */
+  empty: string;
   emptyDescription: string;
+  /** "Showing {shown} of {total} applications", given the formatted counts. */
+  showing: (counts: { shown: string; total: string }) => string;
+}
+
+export interface CatalogListConfig<T extends CatalogRecord, F, ListParams, CreateInput, UpdateData, P> {
+  /** Built when the page's component is, so after the locale is resolved. */
+  text: CatalogText;
+  icon: Component;
   queries: CatalogQueries<T, ListParams, CreateInput, UpdateData>;
   /** What the list asks for, given its paging and the parent filter's value. */
   listParams: (paging: { limit: number; offset: number }, parentId: string | undefined) => ListParams;

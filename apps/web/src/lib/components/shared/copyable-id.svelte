@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from "#lib/paraglide/messages.js";
   import Check from "@lucide/svelte/icons/check";
   import Copy from "@lucide/svelte/icons/copy";
   import { onDestroy } from "svelte";
@@ -32,7 +33,7 @@
   <Tooltip.Root>
     <Tooltip.Trigger
       onclick={handleCopy}
-      aria-label={`Copy ${value}`}
+      aria-label={m.copy_aria({ value })}
       class="inline-flex cursor-pointer items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
     >
       {shortId(value)}

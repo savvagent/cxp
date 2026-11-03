@@ -4,6 +4,7 @@
 // `/auth/logout` ends it.
 import type { QueryClient } from "@tanstack/svelte-query";
 import { toast } from "svelte-sonner";
+import { m } from "#lib/paraglide/messages.js";
 import { z } from "#lib/zod.js";
 
 /** Where the console lives. The server accepts a sign-in `next` only under it. */
@@ -37,19 +38,22 @@ export const sessionSchema = z.discriminatedUnion("signedIn", [signedOutSchema, 
 export type Session = z.infer<typeof sessionSchema>;
 export type SignedOut = z.infer<typeof signedOutSchema>;
 
-/** Why the last sign-in failed, from the `login_error` the server redirects with. */
-export const LOGIN_ERRORS: Record<string, string> = {
-  access_denied: "Sign-in was cancelled at the Savvagent platform.",
-  invalid_state: "That sign-in link expired or was started in another tab. Try again.",
-  platform_unavailable: "The Savvagent platform could not be reached. Try again shortly.",
-  unavailable: "Savvagent CXP could not finish signing you in. Try again shortly.",
-  failed: "Sign-in failed. Try again, or ask an admin of your organization for access.",
+/**
+ * Why the last sign-in failed, from the `login_error` the server redirects
+ * with. Messages, not strings: each is read when shown, in the active locale.
+ */
+export const LOGIN_ERRORS: Record<string, () => string> = {
+  access_denied: m.login_error_access_denied,
+  invalid_state: m.login_error_invalid_state,
+  platform_unavailable: m.login_error_platform_unavailable,
+  unavailable: m.login_error_unavailable,
+  failed: m.login_error_failed,
 };
 
 export function loginErrorMessage(search: string): string | null {
   const code = new URLSearchParams(search).get("login_error");
   if (code === null) return null;
-  return LOGIN_ERRORS[code] ?? LOGIN_ERRORS.failed;
+  return (Object.hasOwn(LOGIN_ERRORS, code) ? LOGIN_ERRORS[code] : LOGIN_ERRORS.failed)();
 }
 
 /** The session, or a thrown error for a non-2xx answer or an unexpected body. */
@@ -105,13 +109,13 @@ export async function signOut(): Promise<void> {
   try {
     response = await fetch("/auth/logout", { method: "POST", credentials: "same-origin" });
   } catch {
-    toast.error("Could not reach Savvagent CXP to sign out. Try again.");
+    toast.error(m.signout_unreachable());
     return;
   }
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     toast.error(
-      typeof body.error === "string" ? body.error : `Could not sign out (${response.status}). Try again.`,
+      typeof body.error === "string" ? body.error : m.signout_failed({ status: String(response.status) }),
     );
     return;
   }

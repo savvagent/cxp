@@ -1,6 +1,8 @@
 // The tickets pages' framework-free logic: the option lists, the URL state of
 // the list page, the create form's schema and payload, and the detail page's
 // field updates. Kept out of the components so it is tested on its own.
+import { m } from "#lib/paraglide/messages.js";
+import { formatNumber } from "#lib/format.js";
 import { z } from "#lib/zod.js";
 import { catalogFiltersFromUrl, type CatalogFilterValues } from "#lib/catalog-filters.js";
 import { fromFilterSelect } from "#lib/forms.js";
@@ -9,31 +11,51 @@ import { withParam } from "#lib/url-state.js";
 import type { CreateTicketInput, TicketListParams, UpdateTicketInput } from "#lib/queries/tickets.js";
 
 export interface Option {
-  value: string;
-  label: string;
+  readonly value: string;
+  /** The value's label in the active locale (a getter: read when shown). */
+  readonly label: string;
+}
+
+/** An option whose label is read from its message each time it is shown. */
+export function option(value: string, label: () => string): Option {
+  return {
+    value,
+    get label() {
+      return label();
+    },
+  };
 }
 
 export const STATUS_OPTIONS: Option[] = [
-  { value: "open", label: "Open" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "waiting", label: "Waiting" },
-  { value: "resolved", label: "Resolved" },
-  { value: "closed", label: "Closed" },
+  option("open", m.ticket_status_open),
+  option("in_progress", m.ticket_status_in_progress),
+  option("waiting", m.ticket_status_waiting),
+  option("resolved", m.ticket_status_resolved),
+  option("closed", m.ticket_status_closed),
 ];
 
 export const PRIORITY_OPTIONS: Option[] = [
-  { value: "urgent", label: "Urgent" },
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
+  option("urgent", m.ticket_priority_urgent),
+  option("high", m.ticket_priority_high),
+  option("medium", m.ticket_priority_medium),
+  option("low", m.ticket_priority_low),
 ];
 
+/** The channels a new ticket can be given. */
 export const CHANNEL_OPTIONS: Option[] = [
-  { value: "email", label: "Email" },
-  { value: "phone", label: "Phone" },
-  { value: "chat", label: "Chat" },
-  { value: "web", label: "Web" },
+  option("email", m.ticket_channel_email),
+  option("phone", m.ticket_channel_phone),
+  option("chat", m.ticket_channel_chat),
+  option("web", m.ticket_channel_web),
 ];
+
+/** Every channel a ticket can have: the create form's, and `social` (set by integrations). */
+const ALL_CHANNELS: Option[] = [...CHANNEL_OPTIONS, option("social", m.ticket_channel_social)];
+
+/** A ticket channel's label, or the channel itself when the console does not know it. */
+export function channelLabel(channel: string): string {
+  return optionLabel(ALL_CHANNELS, channel);
+}
 
 /** `value`'s label in `options`, or `value` itself when it is not one of them. */
 export function optionLabel(options: Option[], value: string): string {
@@ -95,18 +117,20 @@ export function withPage(prev: URLSearchParams, page: number): URLSearchParams {
   return withParam(prev, "page", page > 0 ? String(page) : undefined);
 }
 
-/** "1 ticket", "3 tickets". */
+/** "1 ticket", "3 tickets", in the active locale. */
 export function ticketCount(total: number): string {
-  return `${total} ticket${total !== 1 ? "s" : ""}`;
+  return m.tickets_count({ count: total, countText: formatNumber(total) });
 }
 
 // ---------------------------------------------------------------------------
 // Create form
 // ---------------------------------------------------------------------------
 
+// The messages are functions, so each is read in the active locale when it is
+// reported, not when the schema is built at module load.
 export const createTicketSchema = z.object({
-  customer_id: z.string().min(1, "Customer ID is required"),
-  subject: z.string().min(1, "Subject is required"),
+  customer_id: z.string().min(1, { error: () => m.ticket_customer_id_required() }),
+  subject: z.string().min(1, { error: () => m.ticket_subject_required() }),
   description: z.string().optional(),
   priority: z.string().optional(),
   channel: z.string().optional(),

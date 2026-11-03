@@ -1,6 +1,7 @@
 <script lang="ts">
   // One customer: the profile card with its edit dialog, and the customer
   // 360's recent tickets, feedback and interactions in tabs.
+  import { m } from "#lib/paraglide/messages.js";
   import ArrowLeft from "@lucide/svelte/icons/arrow-left";
   import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
@@ -15,6 +16,7 @@
   import { Badge } from "#lib/components/ui/badge/index.js";
   import { Skeleton } from "#lib/components/ui/skeleton/index.js";
   import * as Tabs from "#lib/components/ui/tabs/index.js";
+  import { formatNumber } from "#lib/format.js";
   import { createCustomer, createCustomer360 } from "#lib/queries/index.js";
 
   const id = $derived(page.params.id);
@@ -52,12 +54,12 @@
   <div class="flex flex-col gap-6">
     <a href={resolve("/customers")} class={backClass}>
       <ArrowLeft class="h-4 w-4" />
-      Back to Customers
+      {m.customer_back()}
     </a>
     <EmptyState
-      title="Customer not found"
-      description="This customer may have been deleted or the link is invalid."
-      action="View all customers"
+      title={m.customer_not_found()}
+      description={m.customer_not_found_description()}
+      action={m.customer_view_all()}
       onAction={() => void goto(resolve("/customers"))}
     />
   </div>
@@ -66,7 +68,7 @@
     <!-- Back navigation -->
     <a href={resolve("/customers")} class="{backClass} transition-colors">
       <ArrowLeft class="h-4 w-4" />
-      Back to Customers
+      {m.customer_back()}
     </a>
 
     <!-- Profile card -->
@@ -74,38 +76,38 @@
 
     <!-- Activity tabs -->
     <Tabs.Root bind:value={tab}>
-      <Tabs.List aria-label="Customer activity">
+      <Tabs.List aria-label={m.customer_activity()}>
         <Tabs.Trigger value="tickets">
-          Tickets
+          {m.nav_tickets()}
           {#if tickets.length > 0}
             <Badge
               variant="secondary"
               class="ml-2 h-5 min-w-[20px] px-1 text-xs"
-              aria-label="{tickets.length} tickets"
+              aria-label={m.customer_tickets_count({ count: tickets.length, countText: formatNumber(tickets.length) })}
             >
               {tickets.length}
             </Badge>
           {/if}
         </Tabs.Trigger>
         <Tabs.Trigger value="feedback">
-          Feedback
+          {m.nav_feedback()}
           {#if feedback.length > 0}
             <Badge
               variant="secondary"
               class="ml-2 h-5 min-w-[20px] px-1 text-xs"
-              aria-label="{feedback.length} feedback items"
+              aria-label={m.customer_feedback_count({ count: feedback.length, countText: formatNumber(feedback.length) })}
             >
               {feedback.length}
             </Badge>
           {/if}
         </Tabs.Trigger>
         <Tabs.Trigger value="interactions">
-          Interactions
+          {m.customer_tab_interactions()}
           {#if interactions.length > 0}
             <Badge
               variant="secondary"
               class="ml-2 h-5 min-w-[20px] px-1 text-xs"
-              aria-label="{interactions.length} interactions"
+              aria-label={m.customer_interactions_count({ count: interactions.length, countText: formatNumber(interactions.length) })}
             >
               {interactions.length}
             </Badge>

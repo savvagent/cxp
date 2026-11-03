@@ -3,6 +3,7 @@
   // submit, then on every edit), payload and toasts as the React console's. As
   // with react-hook-form, the values survive closing the dialog and are cleared
   // only by a create.
+  import { m } from "#lib/paraglide/messages.js";
   import { toast } from "svelte-sonner";
   import { toastError } from "#lib/errors.js";
   import { Button } from "#lib/components/ui/button/index.js";
@@ -13,7 +14,7 @@
   import { validate } from "#lib/forms.js";
   import { createCreateSurvey } from "#lib/queries/index.js";
   import {
-    QUESTIONS_PLACEHOLDER,
+    questionsPlaceholder,
     createSurveySchema,
     emptyCreateSurveyForm,
     toCreateSurveyInput,
@@ -42,10 +43,10 @@
     try {
       await createSurvey.mutateAsync(built.input);
     } catch (err) {
-      toastError(err, "Failed to create survey", "prefix");
+      toastError(err, m.survey_create_failed(), "prefix");
       return;
     }
-    toast.success("Survey created");
+    toast.success(m.survey_created());
     form = emptyCreateSurveyForm();
     attempted = false;
     open = false;
@@ -55,15 +56,15 @@
 <Dialog.Root bind:open>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title>New Survey</Dialog.Title>
+      <Dialog.Title>{m.surveys_new()}</Dialog.Title>
     </Dialog.Header>
 
     <form {onsubmit} class="space-y-4" novalidate>
       <div class="space-y-1.5">
-        <Label for="survey-title">Title <span class="text-destructive">*</span></Label>
+        <Label for="survey-title">{m.label_title()} <span class="text-destructive">*</span></Label>
         <Input
           id="survey-title"
-          placeholder="Customer Satisfaction Survey"
+          placeholder={m.survey_title_placeholder()}
           bind:value={form.title}
           aria-invalid={!!errors.title}
         />
@@ -73,31 +74,31 @@
       </div>
 
       <div class="space-y-1.5">
-        <Label for="survey-description">Description</Label>
+        <Label for="survey-description">{m.label_description()}</Label>
         <Textarea
           id="survey-description"
-          placeholder="Optional description..."
+          placeholder={m.common_optional_description()}
           rows={3}
           bind:value={form.description}
         />
       </div>
 
       <div class="space-y-1.5">
-        <Label for="survey-questions">Questions (JSON)</Label>
+        <Label for="survey-questions">{m.survey_questions_json()}</Label>
         <Textarea
           id="survey-questions"
-          placeholder={QUESTIONS_PLACEHOLDER}
+          placeholder={questionsPlaceholder()}
           rows={4}
           class="font-mono text-xs"
           bind:value={form.questionsRaw}
         />
-        <p class="text-xs text-muted-foreground">Optional. Paste a JSON array of question objects.</p>
+        <p class="text-xs text-muted-foreground">{m.survey_questions_help()}</p>
       </div>
 
       <Dialog.Footer>
-        <Button type="button" variant="outline" onclick={() => (open = false)}>Cancel</Button>
+        <Button type="button" variant="outline" onclick={() => (open = false)}>{m.common_cancel()}</Button>
         <Button type="submit" disabled={createSurvey.isPending}>
-          {createSurvey.isPending ? "Creating..." : "Create Survey"}
+          {createSurvey.isPending ? m.common_creating() : m.survey_create()}
         </Button>
       </Dialog.Footer>
     </form>

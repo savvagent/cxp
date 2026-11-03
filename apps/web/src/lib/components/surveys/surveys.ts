@@ -2,19 +2,27 @@
 // payload, the detail page's edit form and update, and how questions and
 // answers are shown. Kept out of the components so it is tested on its own.
 // (`responsesCount` is shared, in `#lib/surveys.js`.)
+import { m } from "#lib/paraglide/messages.js";
 import { z } from "#lib/zod.js";
 import type { CreateSurveyInput, UpdateSurveyInput } from "#lib/queries/surveys.js";
 import type { Survey } from "#lib/types.js";
 
-/** The questions textareas' placeholder. */
-export const QUESTIONS_PLACEHOLDER = '[{"id": "q1", "text": "How satisfied are you?", "type": "rating"}]';
+/**
+ * The questions textareas' placeholder: an example question in the active
+ * locale, as JSON (`[{"id": "q1", "text": "…", "type": "rating"}]`). Built
+ * here rather than in the catalog, where its braces would read as placeholders.
+ */
+export function questionsPlaceholder(): string {
+  const text = JSON.stringify(m.survey_question_example());
+  return `[{"id": "q1", "text": ${text}, "type": "rating"}]`;
+}
 
 /** The active status badge's (and the edit form's toggle's) extra classes. */
 export const ACTIVE_BADGE_CLASS = "bg-green-100 text-green-800 border-green-200 hover:bg-green-100";
 export const ACTIVE_TOGGLE_CLASS = "bg-green-100 text-green-800 border-green-200 hover:bg-green-200";
 
 export function statusLabel(active: boolean): string {
-  return active ? "Active" : "Inactive";
+  return active ? m.survey_active() : m.survey_inactive();
 }
 
 /** How many questions a survey has: the length of its questions array, else 0. */
@@ -35,14 +43,16 @@ export function parseQuestions(raw: string | undefined): { questions: unknown } 
   }
 }
 
-export const INVALID_QUESTIONS = "Questions must be valid JSON";
+/** The toast for a questions field that is not valid JSON. */
+export const invalidQuestions = (): string => m.survey_questions_invalid();
 
 // ---------------------------------------------------------------------------
 // Create form (list page)
 // ---------------------------------------------------------------------------
 
 export const createSurveySchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  // A function, so the message is read in the active locale when reported.
+  title: z.string().min(1, { error: () => m.survey_title_required() }),
   description: z.string().optional(),
   questionsRaw: z.string().optional(),
 });
@@ -62,7 +72,7 @@ export function toCreateSurveyInput(
   values: CreateSurveyForm,
 ): { ok: true; input: CreateSurveyInput } | { ok: false; message: string } {
   const parsed = parseQuestions(values.questionsRaw);
-  if (!parsed) return { ok: false, message: INVALID_QUESTIONS };
+  if (!parsed) return { ok: false, message: invalidQuestions() };
   return {
     ok: true,
     input: {
@@ -103,9 +113,9 @@ export function surveyUpdate(
   id: string,
   form: SurveyEditForm,
 ): { ok: true; update: UpdateSurveyInput } | { ok: false; message: string } {
-  if (!form.title.trim()) return { ok: false, message: "Title is required" };
+  if (!form.title.trim()) return { ok: false, message: m.survey_title_required() };
   const parsed = parseQuestions(form.questionsRaw);
-  if (!parsed) return { ok: false, message: INVALID_QUESTIONS };
+  if (!parsed) return { ok: false, message: invalidQuestions() };
   return {
     ok: true,
     update: {

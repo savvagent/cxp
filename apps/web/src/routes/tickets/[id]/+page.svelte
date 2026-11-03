@@ -1,6 +1,7 @@
 <script lang="ts">
   // One ticket: its subject, description and tags, and a properties panel that saves status,
   // priority and assignee as each one changes.
+  import { m } from "#lib/paraglide/messages.js";
   import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
@@ -15,6 +16,7 @@
     PRIORITY_OPTIONS,
     STATUS_OPTIONS,
     assigneeChange,
+    channelLabel,
     optionLabel,
     ticketFieldUpdate,
     type TicketField,
@@ -39,10 +41,10 @@
     try {
       await updateTicket.mutateAsync(ticketFieldUpdate(ticket.id, field, value));
     } catch (err) {
-      toastError(err, "Failed to update ticket", "fixed");
+      toastError(err, m.ticket_update_failed(), "fixed");
       return;
     }
-    toast.success("Ticket updated");
+    toast.success(m.ticket_updated());
   }
 
   function backToList() {
@@ -66,9 +68,9 @@
   <div class="space-y-4">
     <Button variant="ghost" onclick={backToList}>
       <ArrowLeft class="mr-2 h-4 w-4" />
-      Back to Tickets
+      {m.ticket_back()}
     </Button>
-    <p class="text-destructive">Ticket not found or failed to load.</p>
+    <p class="text-destructive">{m.ticket_not_found()}</p>
   </div>
 {:else}
   <div class="space-y-6">
@@ -77,10 +79,10 @@
       size="sm"
       onclick={backToList}
       class="gap-2"
-      aria-label="Back to tickets list"
+      aria-label={m.ticket_back_aria()}
     >
       <ArrowLeft class="h-4 w-4" />
-      Back to Tickets
+      {m.ticket_back()}
     </Button>
 
     <div class="grid gap-6 lg:grid-cols-3">
@@ -95,7 +97,7 @@
 
         <Card.Root>
           <Card.Header>
-            <Card.Title class="text-base font-semibold">Description</Card.Title>
+            <Card.Title class="text-base font-semibold">{m.label_description()}</Card.Title>
           </Card.Header>
           <Card.Content>
             {#if ticket.description}
@@ -103,7 +105,7 @@
                 {ticket.description}
               </p>
             {:else}
-              <p class="text-sm text-muted-foreground italic">No description provided.</p>
+              <p class="text-sm text-muted-foreground italic">{m.ticket_no_description()}</p>
             {/if}
           </Card.Content>
         </Card.Root>
@@ -111,7 +113,7 @@
         {#if ticket.tags && ticket.tags.length > 0}
           <Card.Root>
             <Card.Header>
-              <Card.Title class="text-base font-semibold">Tags</Card.Title>
+              <Card.Title class="text-base font-semibold">{m.label_tags()}</Card.Title>
             </Card.Header>
             <Card.Content>
               <div class="flex flex-wrap gap-2">
@@ -127,17 +129,17 @@
       <div>
         <Card.Root>
           <Card.Header>
-            <Card.Title class="text-base font-semibold">Properties</Card.Title>
+            <Card.Title class="text-base font-semibold">{m.ticket_properties()}</Card.Title>
           </Card.Header>
           <Card.Content class="space-y-5">
             <div class="space-y-1.5">
-              <Label for="detail-status">Status</Label>
+              <Label for="detail-status">{m.label_status()}</Label>
               <Select.Root
                 type="single"
                 bind:value={() => ticket.status, (v) => void updateField("status", v)}
                 disabled={updateTicket.isPending}
               >
-                <Select.Trigger id="detail-status" class="w-full" aria-label="Change ticket status">
+                <Select.Trigger id="detail-status" class="w-full" aria-label={m.ticket_change_status()}>
                   {optionLabel(STATUS_OPTIONS, ticket.status)}
                 </Select.Trigger>
                 <Select.Content>
@@ -149,13 +151,13 @@
             </div>
 
             <div class="space-y-1.5">
-              <Label for="detail-priority">Priority</Label>
+              <Label for="detail-priority">{m.label_priority()}</Label>
               <Select.Root
                 type="single"
                 bind:value={() => ticket.priority, (v) => void updateField("priority", v)}
                 disabled={updateTicket.isPending}
               >
-                <Select.Trigger id="detail-priority" class="w-full" aria-label="Change ticket priority">
+                <Select.Trigger id="detail-priority" class="w-full" aria-label={m.ticket_change_priority()}>
                   {optionLabel(PRIORITY_OPTIONS, ticket.priority)}
                 </Select.Trigger>
                 <Select.Content>
@@ -167,35 +169,35 @@
             </div>
 
             <div class="space-y-1.5">
-              <Label for="detail-assigned">Assigned To</Label>
+              <Label for="detail-assigned">{m.ticket_assigned_to()}</Label>
               <Input
                 id="detail-assigned"
                 value={ticket.assignedTo ?? ""}
-                placeholder="Unassigned"
+                placeholder={m.ticket_unassigned()}
                 onblur={onAssigneeBlur}
                 onkeydown={onAssigneeKeydown}
                 disabled={updateTicket.isPending}
-                aria-label="Assigned to"
+                aria-label={m.ticket_assigned_to_aria()}
               />
             </div>
 
             <Separator />
 
             <div class="space-y-1.5">
-              <p class="text-sm font-medium">Channel</p>
+              <p class="text-sm font-medium">{m.label_channel()}</p>
               {#if ticket.channel}
-                <Badge variant="outline" class="capitalize">{ticket.channel}</Badge>
+                <Badge variant="outline">{channelLabel(ticket.channel)}</Badge>
               {:else}
                 <p class="text-sm text-muted-foreground">-</p>
               {/if}
             </div>
 
             <div class="space-y-1.5">
-              <p class="text-sm font-medium">Customer</p>
+              <p class="text-sm font-medium">{m.label_customer()}</p>
               <a
                 href={resolve("/customers/[id]", { id: ticket.customerId })}
                 class="inline-flex items-center gap-1 rounded font-mono text-sm text-primary hover:underline focus:ring-2 focus:ring-ring focus:outline-none"
-                aria-label={`View customer ${ticket.customerId}`}
+                aria-label={m.ticket_view_customer({ id: ticket.customerId })}
               >
                 {ticket.customerId.slice(0, 8)}...
                 <ExternalLink class="h-3 w-3 shrink-0" />
@@ -206,19 +208,19 @@
 
             <div class="space-y-3">
               <div>
-                <p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">Created</p>
+                <p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">{m.label_created()}</p>
                 <p class="mt-0.5 text-sm">{formatLocaleDateTime(ticket.createdAt)}</p>
               </div>
               <div>
                 <p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                  Last Updated
+                  {m.ticket_last_updated()}
                 </p>
                 <p class="mt-0.5 text-sm">{formatLocaleDateTime(ticket.updatedAt)}</p>
               </div>
               {#if ticket.resolvedAt}
                 <div>
                   <p class="text-xs font-medium tracking-wide text-muted-foreground uppercase">
-                    Resolved
+                    {m.ticket_resolved_at()}
                   </p>
                   <p class="mt-0.5 text-sm">{formatLocaleDateTime(ticket.resolvedAt)}</p>
                 </div>

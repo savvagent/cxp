@@ -3,6 +3,7 @@
   // ExperienceDialog, ApplicationDialog, PageDialog and ComponentDialog, which
   // differed only in their fields): Team, the parent level, Name, one extra
   // text field, and Description, validated with the level's zod schema.
+  import { m } from "#lib/paraglide/messages.js";
   import type { z } from "#lib/zod.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Dialog from "#lib/components/ui/dialog/index.js";
@@ -80,7 +81,7 @@
 
   const teamLabel = $derived.by(() => {
     const id = values.team_id;
-    if (!id) return "No team";
+    if (!id) return m.catalog_no_team();
     return teams.find((t) => t.id === id)?.name ?? id.slice(0, 8);
   });
 
@@ -103,7 +104,7 @@
     </Dialog.Header>
     <form onsubmit={handleSubmit} class="space-y-4" novalidate>
       <div class="space-y-1.5">
-        <Label for={`${idPrefix}-team`}>Team</Label>
+        <Label for={`${idPrefix}-team`}>{m.label_team()}</Label>
         <Select.Root
           type="single"
           bind:value={() => values.team_id || NONE, (v) => (values.team_id = fromOptionalSelect(v))}
@@ -112,7 +113,7 @@
             <span class="truncate" class:text-muted-foreground={!values.team_id}>{teamLabel}</span>
           </Select.Trigger>
           <Select.Content>
-            <Select.Item value={NONE} label="No team" />
+            <Select.Item value={NONE} label={m.catalog_no_team()} />
             {#each teams as t (t.id)}
               <Select.Item value={t.id} label={t.name} />
             {/each}
@@ -133,7 +134,7 @@
             <Select.Trigger id={`${idPrefix}-${parent.idSuffix}`} class="w-full">
               <span class="truncate" class:text-muted-foreground={!values[parent.field]}>
                 {#if !values[parent.field]}
-                  None
+                  {m.common_none()}
                 {:else if parentSelected}
                   {parentSelected.label}
                   {#if parentSelected.hint}
@@ -145,7 +146,7 @@
               </span>
             </Select.Trigger>
             <Select.Content>
-              <Select.Item value={NONE} label="None" />
+              <Select.Item value={NONE} label={m.common_none()} />
               {#each parent.options as o (o.value)}
                 <Select.Item value={o.value} label={o.label}>
                   {o.label}
@@ -161,7 +162,7 @@
 
       <div class="space-y-1.5">
         <Label for={`${idPrefix}-name`}>
-          Name <span class="text-destructive">*</span>
+          {m.label_name()} <span class="text-destructive">*</span>
         </Label>
         <Input
           id={`${idPrefix}-name`}
@@ -185,19 +186,19 @@
       {/if}
 
       <div class="space-y-1.5">
-        <Label for={`${idPrefix}-desc`}>Description</Label>
+        <Label for={`${idPrefix}-desc`}>{m.label_description()}</Label>
         <Textarea
           id={`${idPrefix}-desc`}
-          placeholder="Optional description..."
+          placeholder={m.common_optional_description()}
           rows={3}
           bind:value={values.description}
         />
       </div>
 
       <Dialog.Footer>
-        <Button type="button" variant="outline" onclick={() => onOpenChange(false)}>Cancel</Button>
+        <Button type="button" variant="outline" onclick={() => onOpenChange(false)}>{m.common_cancel()}</Button>
         <Button type="submit" disabled={pending}>
-          {pending ? "Saving..." : isEdit ? "Save Changes" : "Create"}
+          {pending ? m.common_saving() : isEdit ? m.common_save_changes() : m.common_create()}
         </Button>
       </Dialog.Footer>
     </form>

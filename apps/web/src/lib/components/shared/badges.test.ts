@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { priorityClass, statusClass, statusLabel } from "./badges";
+import { priorityClass, priorityLabel, statusClass, statusLabel } from "./badges";
 
 describe("statusClass", () => {
   it("colours every ticket status as the old console did", () => {
@@ -19,10 +19,20 @@ describe("statusClass", () => {
 });
 
 describe("statusLabel", () => {
-  it("replaces every underscore with a space", () => {
-    expect(statusLabel("in_progress")).toBe("in progress");
+  it("names a known status in the active locale", () => {
+    expect(statusLabel("in_progress")).toBe("In Progress");
+    expect(statusLabel("open")).toBe("Open");
+  });
+
+  it("replaces every underscore of an unknown status with a space", () => {
     expect(statusLabel("a_b_c")).toBe("a b c");
-    expect(statusLabel("open")).toBe("open");
+  });
+});
+
+describe("priorityLabel", () => {
+  it("names a known priority, and leaves an unknown one as it is", () => {
+    expect(priorityLabel("urgent")).toBe("Urgent");
+    expect(priorityLabel("critical")).toBe("critical");
   });
 });
 

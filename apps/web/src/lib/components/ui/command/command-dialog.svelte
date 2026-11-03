@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from "#lib/paraglide/messages.js";
 	import * as Dialog from "#lib/components/ui/dialog/index.js";
 	import { cn, type WithoutChildrenOrChild } from "#lib/utils.js";
 	import Command from "./command.svelte";
@@ -9,8 +10,8 @@
 		open = $bindable(false),
 		ref = $bindable(null),
 		value = $bindable(""),
-		title = "Command Palette",
-		description = "Search for a command to run...",
+		title = m.palette_title(),
+		description = m.palette_description(),
 		showCloseButton = false,
 		portalProps,
 		children,

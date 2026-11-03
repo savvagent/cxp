@@ -1,11 +1,12 @@
 <script lang="ts">
+  import { m } from "#lib/paraglide/messages.js";
   import Star from "@lucide/svelte/icons/star";
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import { Badge } from "#lib/components/ui/badge/index.js";
   import * as Table from "#lib/components/ui/table/index.js";
   import type { FeedbackSummary } from "#lib/types.js";
   import { formatDate } from "#lib/format.js";
-  import { humanize } from "./customers.js";
+  import { feedbackTypeLabel } from "#lib/components/feedback/feedback.js";
 
   let { feedback }: { feedback: FeedbackSummary[] } = $props();
 </script>
@@ -13,32 +14,32 @@
 {#if feedback.length === 0}
   <EmptyState
     icon={Star}
-    title="No feedback"
-    description="This customer has not submitted any feedback yet."
+    title={m.customer_no_feedback()}
+    description={m.customer_no_feedback_description()}
   />
 {:else}
   <div class="rounded-md border">
     <Table.Root>
       <Table.Header>
         <Table.Row>
-          <Table.Head>Type</Table.Head>
-          <Table.Head>Subject</Table.Head>
-          <Table.Head class="hidden sm:table-cell">Rating</Table.Head>
-          <Table.Head class="hidden md:table-cell">Date</Table.Head>
+          <Table.Head>{m.label_type()}</Table.Head>
+          <Table.Head>{m.label_subject()}</Table.Head>
+          <Table.Head class="hidden sm:table-cell">{m.label_rating()}</Table.Head>
+          <Table.Head class="hidden md:table-cell">{m.label_date()}</Table.Head>
         </Table.Row>
       </Table.Header>
       <Table.Body>
         {#each feedback as item (item.id)}
           <Table.Row>
             <Table.Cell>
-              <Badge variant="outline" class="text-xs capitalize">{humanize(item.feedbackType)}</Badge>
+              <Badge variant="outline" class="text-xs">{feedbackTypeLabel(item.feedbackType)}</Badge>
             </Table.Cell>
             <Table.Cell class="max-w-[220px]">
               <p class="truncate font-medium">
                 {#if item.subject != null}
                   {item.subject}
                 {:else}
-                  <span class="text-muted-foreground italic">No subject</span>
+                  <span class="text-muted-foreground italic">{m.customer_no_subject()}</span>
                 {/if}
               </p>
               {#if item.body}

@@ -1,6 +1,7 @@
 <script lang="ts">
   // A survey's questions, numbered, each with its type badge (the React
   // detail page's `QuestionsList`). Question text is customer data: text only.
+  import { m } from "#lib/paraglide/messages.js";
   import { Badge } from "#lib/components/ui/badge/index.js";
   import { questionItems } from "./surveys.js";
 
@@ -10,7 +11,7 @@
 </script>
 
 {#if items.length === 0}
-  <p class="text-sm text-muted-foreground">No questions defined.</p>
+  <p class="text-sm text-muted-foreground">{m.survey_no_questions()}</p>
 {:else}
   <ol class="space-y-2">
     {#each items as q, i (i)}

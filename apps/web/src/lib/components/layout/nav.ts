@@ -1,32 +1,47 @@
 // The console's navigation, framework-free: the sidebar's, the mobile nav's
 // and the command palette's items, which item a path makes active, and what
 // the header calls the page. Paths are within the console (no `/console`).
+//
+// Each label is a getter over its message: these lists are built when the
+// module loads, before the root layout resolves the locale, so a plain string
+// here would always be English.
+import { m } from "#lib/paraglide/messages.js";
 
 /** The console's base path, as the browser's `pathname` carries it. */
 export const CONSOLE_BASE_PATH = "/console";
 
+/** One navigation item: its path, and its label in the active locale. */
+function navItem<const To extends string>(to: To, label: () => string): { readonly to: To; readonly label: string } {
+  return {
+    to,
+    get label() {
+      return label();
+    },
+  };
+}
+
 /** The sidebar's top-level items. */
 export const NAV_ITEMS = [
-  { to: "/dashboard", label: "Dashboard" },
-  { to: "/customers", label: "Customers" },
-  { to: "/tickets", label: "Tickets" },
-  { to: "/feedback", label: "Feedback" },
-  { to: "/surveys", label: "Surveys" },
+  navItem("/dashboard", m.nav_dashboard),
+  navItem("/customers", m.nav_customers),
+  navItem("/tickets", m.nav_tickets),
+  navItem("/feedback", m.nav_feedback),
+  navItem("/surveys", m.nav_surveys),
 ] as const;
 
 /** The sidebar's catalog section. */
 export const CATALOG_ITEMS = [
-  { to: "/catalog/experiences", label: "Experiences" },
-  { to: "/catalog/applications", label: "Applications" },
-  { to: "/catalog/pages", label: "Pages" },
-  { to: "/catalog/components", label: "Components" },
+  navItem("/catalog/experiences", m.nav_experiences),
+  navItem("/catalog/applications", m.nav_applications),
+  navItem("/catalog/pages", m.nav_pages),
+  navItem("/catalog/components", m.nav_components),
 ] as const;
 
 /** The catalog section's heading. */
-export const CATALOG_LABEL = "Catalog";
+export const catalogLabel = (): string => m.nav_catalog();
 
 /** The command palette's navigation: the top-level items, then the catalog (its first level). */
-export const PALETTE_ITEMS = [...NAV_ITEMS, { to: CATALOG_ITEMS[0].to, label: CATALOG_LABEL }] as const;
+export const PALETTE_ITEMS = [...NAV_ITEMS, navItem(CATALOG_ITEMS[0].to, m.nav_catalog)] as const;
 
 /** Every route the navigation links to. */
 export type NavPath = (typeof NAV_ITEMS)[number]["to"] | (typeof CATALOG_ITEMS)[number]["to"];
@@ -49,14 +64,16 @@ export function isNavActive(pathname: string, to: NavPath): boolean {
   return path === to || path.startsWith(`${to}/`);
 }
 
-const ROUTE_TITLES: Record<string, string> = Object.fromEntries(
-  [...NAV_ITEMS, ...CATALOG_ITEMS].map(({ to, label }) => [to, label]),
-);
+const ROUTE_ITEMS: readonly { to: string; label: string }[] = [...NAV_ITEMS, ...CATALOG_ITEMS];
+
+function routeLabel(path: string): string | undefined {
+  return ROUTE_ITEMS.find((item) => item.to === path)?.label;
+}
 
 /** The header's title for a path: its first two segments, else its first, else "CXP". */
 export function routeTitle(pathname: string): string {
   const segments = consolePath(pathname).split("/").filter(Boolean);
   const firstTwo = "/" + segments.slice(0, 2).join("/");
   const first = "/" + (segments[0] ?? "");
-  return ROUTE_TITLES[firstTwo] || ROUTE_TITLES[first] || "CXP";
+  return routeLabel(firstTwo) || routeLabel(first) || "CXP";
 }

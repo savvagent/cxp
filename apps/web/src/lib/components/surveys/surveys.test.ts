@@ -3,7 +3,7 @@ import { validate } from "#lib/forms.js";
 import type { Survey } from "#lib/types.js";
 import {
   createSurveySchema,
-  INVALID_QUESTIONS,
+  invalidQuestions,
   answersPreview,
   editFormFromSurvey,
   emptyCreateSurveyForm,
@@ -114,7 +114,7 @@ describe("edit survey form", () => {
     });
     expect(surveyUpdate("s1", { title: "T", description: "", active: true, questionsRaw: "bad" })).toEqual({
       ok: false,
-      message: INVALID_QUESTIONS,
+      message: invalidQuestions(),
     });
   });
 });

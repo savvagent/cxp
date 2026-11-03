@@ -1,6 +1,7 @@
 <script lang="ts">
   // One survey: its details and questions, edited in place (title, description, status and the
   // questions JSON), and the first page of its responses.
+  import { m } from "#lib/paraglide/messages.js";
   import ArrowLeft from "@lucide/svelte/icons/arrow-left";
   import ClipboardList from "@lucide/svelte/icons/clipboard-list";
   import ListOrdered from "@lucide/svelte/icons/list-ordered";
@@ -18,7 +19,7 @@
   import {
     ACTIVE_BADGE_CLASS,
     ACTIVE_TOGGLE_CLASS,
-    QUESTIONS_PLACEHOLDER,
+    questionsPlaceholder,
     answersPreview,
     editFormFromSurvey,
     statusLabel,
@@ -66,10 +67,10 @@
     try {
       await updateSurvey.mutateAsync(result.update);
     } catch (err) {
-      toastError(err, "Failed to update survey", "prefix");
+      toastError(err, m.survey_update_failed(), "prefix");
       return;
     }
-    toast.success("Survey updated");
+    toast.success(m.survey_updated());
     editing = false;
   }
 </script>
@@ -81,23 +82,23 @@
       class="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
     >
       <ArrowLeft class="h-4 w-4" />
-      Back to Surveys
+      {m.survey_back()}
     </a>
     {#if survey && !surveyQuery.isLoading && !editing}
       <Button variant="outline" size="sm" onclick={() => (editing = true)}>
         <Pencil class="mr-1.5 h-3.5 w-3.5" />
-        Edit
+        {m.common_edit()}
       </Button>
     {/if}
     {#if editing}
       <div class="flex items-center gap-2">
         <Button variant="outline" size="sm" onclick={() => (editing = false)} disabled={updateSurvey.isPending}>
           <X class="mr-1.5 h-3.5 w-3.5" />
-          Cancel
+          {m.common_cancel()}
         </Button>
         <Button size="sm" onclick={handleSave} disabled={updateSurvey.isPending}>
           <Save class="mr-1.5 h-3.5 w-3.5" />
-          {updateSurvey.isPending ? "Saving..." : "Save"}
+          {updateSurvey.isPending ? m.common_saving() : m.common_save()}
         </Button>
       </div>
     {/if}
@@ -114,20 +115,20 @@
         {#if editing}
           <div class="space-y-4">
             <div class="space-y-1.5">
-              <Label for="edit-title">Title <span class="text-destructive">*</span></Label>
-              <Input id="edit-title" bind:value={form.title} placeholder="Survey title" />
+              <Label for="edit-title">{m.label_title()} <span class="text-destructive">*</span></Label>
+              <Input id="edit-title" bind:value={form.title} placeholder={m.survey_title_input_placeholder()} />
             </div>
             <div class="space-y-1.5">
-              <Label for="edit-description">Description</Label>
+              <Label for="edit-description">{m.label_description()}</Label>
               <Textarea
                 id="edit-description"
                 bind:value={form.description}
-                placeholder="Optional description..."
+                placeholder={m.common_optional_description()}
                 rows={3}
               />
             </div>
             <div class="flex items-center gap-3">
-              <Label for="edit-active">Status</Label>
+              <Label for="edit-active">{m.label_status()}</Label>
               <Button
                 id="edit-active"
                 type="button"
@@ -152,11 +153,11 @@
           {/if}
           <div class="flex items-center gap-3 text-xs text-muted-foreground">
             <CopyableId value={survey.id} />
-            <span>Created {localeDate(survey.createdAt)}</span>
+            <span>{m.survey_created_on({ date: localeDate(survey.createdAt) })}</span>
           </div>
         {/if}
       {:else}
-        <Card.Title>Survey not found</Card.Title>
+        <Card.Title>{m.survey_not_found()}</Card.Title>
       {/if}
     </Card.Header>
   </Card.Root>
@@ -165,7 +166,7 @@
     <Card.Header>
       <div class="flex items-center gap-2">
         <ListOrdered class="h-4 w-4 text-muted-foreground" />
-        <Card.Title class="text-base">Questions</Card.Title>
+        <Card.Title class="text-base">{m.label_questions()}</Card.Title>
       </div>
     </Card.Header>
     <Card.Content>
@@ -179,11 +180,11 @@
         <div class="space-y-1.5">
           <Textarea
             bind:value={form.questionsRaw}
-            placeholder={QUESTIONS_PLACEHOLDER}
+            placeholder={questionsPlaceholder()}
             rows={10}
             class="font-mono text-xs"
           />
-          <p class="text-xs text-muted-foreground">JSON array of question objects.</p>
+          <p class="text-xs text-muted-foreground">{m.survey_questions_json_help()}</p>
         </div>
       {:else}
         <QuestionsList questions={survey?.questions} />
@@ -193,26 +194,28 @@
 
   <div class="space-y-3">
     <h3 class="text-lg font-semibold">
-      Responses{responsesQuery.data ? ` (${responsesCount(responses.length, total)})` : ""}
+      {responsesQuery.data
+        ? m.survey_responses_with_count({ count: responsesCount(responses.length, total) })
+        : m.survey_responses()}
     </h3>
     {#if responsesQuery.isLoading}
       <LoadingTable />
     {:else if responsesQuery.isError}
-      <EmptyState title="Failed to load responses" description="Check your connection and try again." />
+      <EmptyState title={m.survey_load_responses_failed()} description={m.common_check_connection()} />
     {:else if responses.length === 0}
       <EmptyState
         icon={ClipboardList}
-        title="No responses yet"
-        description="Responses will appear here once customers complete the survey."
+        title={m.survey_no_responses()}
+        description={m.survey_no_responses_description()}
       />
     {:else}
       <div class="overflow-x-auto rounded-md border">
         <Table.Root>
           <Table.Header>
             <Table.Row>
-              <Table.Head>Customer ID</Table.Head>
-              <Table.Head>Completed At</Table.Head>
-              <Table.Head>Answers</Table.Head>
+              <Table.Head>{m.label_customer_id()}</Table.Head>
+              <Table.Head>{m.label_completed_at()}</Table.Head>
+              <Table.Head>{m.label_answers()}</Table.Head>
             </Table.Row>
           </Table.Header>
           <Table.Body>

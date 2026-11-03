@@ -148,8 +148,9 @@ describe("sign-in and sign-out", () => {
   });
 
   it("a known login error is explained, an unknown one is generic, and none is nothing", () => {
-    expect(loginErrorMessage("?login_error=access_denied")).toBe(LOGIN_ERRORS.access_denied);
-    expect(loginErrorMessage("?login_error=%3Cscript%3E")).toBe(LOGIN_ERRORS.failed);
+    expect(loginErrorMessage("?login_error=access_denied")).toBe(LOGIN_ERRORS.access_denied());
+    expect(loginErrorMessage("?login_error=%3Cscript%3E")).toBe(LOGIN_ERRORS.failed());
+    expect(loginErrorMessage("?login_error=constructor")).toBe(LOGIN_ERRORS.failed());
     expect(loginErrorMessage("?x=1")).toBeNull();
   });
 

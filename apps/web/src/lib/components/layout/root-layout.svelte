@@ -1,5 +1,6 @@
 <script lang="ts">
   // The console once the browser is signed in; the sign-in screen until then.
+  import { m } from "#lib/paraglide/messages.js";
   import RotateCw from "@lucide/svelte/icons/rotate-cw";
   import type { Snippet } from "svelte";
   import SignIn from "#lib/components/auth/sign-in.svelte";
@@ -21,7 +22,7 @@
 </script>
 
 {#if session.isPending}
-  <div class="flex min-h-screen items-center justify-center p-4" aria-busy="true" aria-label="Checking your sign-in">
+  <div class="flex min-h-screen items-center justify-center p-4" aria-busy="true" aria-label={m.shell_checking_sign_in()}>
     <Skeleton class="h-32 w-full max-w-sm rounded-lg" />
   </div>
 {:else if session.isError}
@@ -29,10 +30,10 @@
     class="flex min-h-screen flex-col items-center justify-center gap-3 p-4 text-sm text-muted-foreground"
     aria-busy={session.isFetching}
   >
-    <p role="alert">Could not reach Savvagent CXP to check your sign-in.</p>
+    <p role="alert">{m.shell_session_unreachable()}</p>
     <Button variant="outline" size="sm" disabled={session.isFetching} onclick={() => void session.refetch()}>
       <RotateCw class="h-4 w-4" />
-      Try again
+      {m.common_try_again()}
     </Button>
   </div>
 {:else if !session.data.signedIn}

@@ -2,6 +2,7 @@
   // The feedback list: the type filter (`?feedback_type=`) and the catalog
   // filters live in the URL; the page number is local state, back to the first
   // page whenever a filter changes.
+  import { m } from "#lib/paraglide/messages.js";
   import MessageSquare from "@lucide/svelte/icons/message-square";
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
@@ -24,7 +25,7 @@
   import * as Select from "#lib/components/ui/select/index.js";
   import * as Table from "#lib/components/ui/table/index.js";
   import { ALL } from "#lib/forms.js";
-  import { localeDate } from "#lib/format.js";
+  import { formatNumber, localeDate } from "#lib/format.js";
   import { pageWindow } from "#lib/pagination.js";
   import { createFeedback } from "#lib/queries/index.js";
   import { pushUrl, queryHref, searchOf } from "#lib/url-state.js";
@@ -48,22 +49,22 @@
 </script>
 
 <div class="space-y-6">
-  <PageHeader title="Feedback" />
+  <PageHeader title={m.nav_feedback()} />
 
   <div class="flex flex-wrap items-center gap-3">
     <Select.Root type="single" bind:value={() => feedbackType ?? ALL, (v) => setFeedbackType(v)}>
-      <Select.Trigger class="w-[180px]" aria-label="Filter by type">
-        {feedbackType ? feedbackTypeLabel(feedbackType) : "All types"}
+      <Select.Trigger class="w-[180px]" aria-label={m.feedback_filter_type()}>
+        {feedbackType ? feedbackTypeLabel(feedbackType) : m.feedback_all_types()}
       </Select.Trigger>
       <Select.Content>
-        <Select.Item value={ALL} label="All types" />
+        <Select.Item value={ALL} label={m.feedback_all_types()} />
         {#each FEEDBACK_TYPES as t (t.value)}
           <Select.Item value={t.value} label={t.label} />
         {/each}
       </Select.Content>
     </Select.Root>
     {#if feedbackType}
-      <Button variant="ghost" size="sm" onclick={() => setFeedbackType(undefined)}>Clear filter</Button>
+      <Button variant="ghost" size="sm" onclick={() => setFeedbackType(undefined)}>{m.common_clear_filter()}</Button>
     {/if}
   </div>
 
@@ -74,19 +75,19 @@
   {:else if items.length === 0}
     <EmptyState
       icon={MessageSquare}
-      title="No feedback found"
-      description="Adjust your filters or check back later."
+      title={m.feedback_none()}
+      description={m.feedback_none_description()}
     />
   {:else}
     <div class="overflow-x-auto rounded-md border">
       <Table.Root>
         <Table.Header>
           <Table.Row>
-            <Table.Head>Type</Table.Head>
-            <Table.Head>Subject</Table.Head>
-            <Table.Head>Rating</Table.Head>
-            <Table.Head>Customer ID</Table.Head>
-            <Table.Head class="hidden md:table-cell">Created At</Table.Head>
+            <Table.Head>{m.label_type()}</Table.Head>
+            <Table.Head>{m.label_subject()}</Table.Head>
+            <Table.Head>{m.label_rating()}</Table.Head>
+            <Table.Head>{m.label_customer_id()}</Table.Head>
+            <Table.Head class="hidden md:table-cell">{m.label_created_at()}</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -119,13 +120,15 @@
 
     {#if paging.totalPages > 1}
       <div class="flex items-center justify-between text-sm text-muted-foreground">
-        <span>Showing {paging.from}–{paging.to} of {total}</span>
+        <span>
+          {m.feedback_showing({ from: formatNumber(paging.from), to: formatNumber(paging.to), total: formatNumber(total) })}
+        </span>
         <div class="flex gap-2">
           <Button variant="outline" size="sm" onclick={() => (pageIndex -= 1)} disabled={!paging.hasPrev}>
-            Previous
+            {m.common_previous()}
           </Button>
           <Button variant="outline" size="sm" onclick={() => (pageIndex += 1)} disabled={!paging.hasNext}>
-            Next
+            {m.common_next()}
           </Button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { m } from "#lib/paraglide/messages.js";
 import { describe, expect, it } from "vitest";
 import { CUSTOMER_PAGE_SIZE, PAGE_SIZE, pageWindow, showingLine } from "./pagination";
 
@@ -56,8 +57,12 @@ describe("pageWindow", () => {
 
 describe("showingLine", () => {
   it("only past one page", () => {
-    expect(showingLine(20, 20, 20, "experiences")).toBeNull();
-    expect(showingLine(20, 20, 45, "experiences")).toBe("Showing 20 of 45 experiences");
-    expect(showingLine(20, 25, 45, "pages")).toBe("Showing 20 of 45 pages");
+    expect(showingLine(20, 20, 20, m.catalog_experience_showing)).toBeNull();
+    expect(showingLine(20, 20, 45, m.catalog_experience_showing)).toBe("Showing 20 of 45 experiences");
+    expect(showingLine(20, 25, 45, m.catalog_page_showing)).toBe("Showing 20 of 45 pages");
+  });
+
+  it("formats the counts for the locale", () => {
+    expect(showingLine(20, 20, 1234, ({ shown, total }) => `${shown}/${total}`)).toBe("20/1,234");
   });
 });
