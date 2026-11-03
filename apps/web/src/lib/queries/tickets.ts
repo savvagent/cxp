@@ -1,5 +1,5 @@
-// Port of the React console's src/hooks/use-tickets.ts: the same query keys, `enabled`
-// and invalidations, as option factories (testable without a component) and
+// The ticket queries, with the React console's query keys, `enabled` and
+// invalidations, as option factories (testable without a component) and
 // the thin `create…` wrappers that components call.
 import {
   createMutation,

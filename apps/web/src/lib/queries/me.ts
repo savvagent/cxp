@@ -1,4 +1,4 @@
-// Port of the React console's src/hooks/use-me.ts.
+// The signed-in user's teams query, with the React console's keys.
 import { createQuery, queryOptions } from "@tanstack/svelte-query";
 import { meApi } from "#lib/api/index.js";
 

@@ -1,4 +1,4 @@
-// Port of the React console's src/hooks/use-session.ts. The key and the fetch live in
+// The sign-in session query. The key and the fetch live in
 // `#lib/session.js`, which `apiFetch` uses to mark the console signed out.
 import { createQuery, queryOptions } from "@tanstack/svelte-query";
 import { fetchSession, sessionKeys } from "#lib/session.js";

@@ -1,4 +1,4 @@
-// Port of the React console's src/hooks/use-feedback.ts. Feedback is read-only in the
+// The feedback list query, with the React console's keys. Feedback is read-only in the
 // console, so there are no mutations and no detail keys.
 import { createQuery, queryOptions, type Accessor } from "@tanstack/svelte-query";
 import { feedbackApi } from "#lib/api/index.js";

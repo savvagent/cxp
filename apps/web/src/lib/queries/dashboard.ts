@@ -1,4 +1,4 @@
-// Port of the React console's src/hooks/use-dashboard.ts.
+// The dashboard's metrics query, with the React console's key.
 import { createQuery, queryOptions } from "@tanstack/svelte-query";
 import { dashboardApi } from "#lib/api/index.js";
 

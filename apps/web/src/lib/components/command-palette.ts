@@ -1,5 +1,4 @@
 // The command palette's logic, framework-free: its shortcut and its search.
-// Ported from the React console's src/components/command-palette.tsx.
 import type { Customer, Ticket } from "#lib/types.js";
 
 /** The shortest query the palette searches for. */
