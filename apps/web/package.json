@@ -8,11 +8,13 @@
     "#lib/*": "./src/lib/*"
   },
   "scripts": {
-    "dev": "vite dev",
-    "build": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && vite build && node scripts/extract-inline-scripts.mjs",
+    "dev": "pnpm run paraglide:compile && vite dev",
+    "build": "pnpm run paraglide:compile && pnpm run check:messages && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json && vite build && node scripts/extract-inline-scripts.mjs",
     "preview": "vite preview",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "test": "vitest run"
+    "check": "pnpm run paraglide:compile && pnpm run check:messages && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "test": "pnpm run paraglide:compile && vitest run",
+    "paraglide:compile": "paraglide-js compile --project ./project.inlang --outdir ./src/lib/paraglide --emit-ts-declarations",
+    "check:messages": "node scripts/check-messages.mjs"
   },
   "dependencies": {
     "@internationalized/date": "^3.12.4",
@@ -29,6 +31,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@inlang/paraglide-js": "^2.25.0",
     "@sveltejs/adapter-static": "^4.0.1",
     "@sveltejs/kit": "^3.1.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

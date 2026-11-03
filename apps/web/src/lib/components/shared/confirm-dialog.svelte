@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from "#lib/paraglide/messages.js";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Dialog from "#lib/components/ui/dialog/index.js";
 
@@ -16,7 +17,7 @@
     title: string;
     description: string;
     onConfirm: () => void;
-    /** While true the confirm button is disabled and reads "Deleting...". */
+    /** While true the confirm button is disabled and reads "Deleting..." (`common_deleting`). */
     loading?: boolean;
   } = $props();
 
@@ -33,9 +34,9 @@
       <Dialog.Description>{description}</Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer>
-      <Button variant="outline" onclick={cancel}>Cancel</Button>
+      <Button variant="outline" onclick={cancel}>{m.common_cancel()}</Button>
       <Button variant="destructive" onclick={onConfirm} disabled={loading}>
-        {loading ? "Deleting..." : "Delete"}
+        {loading ? m.common_deleting() : m.common_delete()}
       </Button>
     </Dialog.Footer>
   </Dialog.Content>

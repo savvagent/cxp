@@ -1,13 +1,15 @@
 // The customers pages' framework-free logic, as the React pages had it: the
 // create/edit form schema and its mapping to the API, the list's client-side
 // search, and the labels the pages show.
+import { m } from "#lib/paraglide/messages.js";
 import { z } from "#lib/zod.js";
 import { validate, type FieldErrors } from "#lib/forms.js";
 import type { Customer } from "#lib/types.js";
 
 /** The create and edit customer forms: email required, everything else optional. */
 export const customerFormSchema = z.object({
-  email: z.email("Enter a valid email address"),
+  // A function, so the message is read in the active locale when reported.
+  email: z.email({ error: () => m.customer_email_invalid() }),
   name: z.string().optional(),
   phone: z.string().optional(),
   company: z.string().optional(),
@@ -98,7 +100,22 @@ export function displayName(customer: Customer): string {
   return customer.name ?? customer.email;
 }
 
-/** An enum value as a badge shows it: `page_view` reads `page view`. */
+/** An enum value as a badge shows one the console has no label for: `page_view` reads `page view`. */
 export function humanize(value: string): string {
   return value.replace(/_/g, " ");
+}
+
+const INTERACTION_TYPES: Record<string, () => string> = {
+  page_view: m.interaction_type_page_view,
+  purchase: m.interaction_type_purchase,
+  support_contact: m.interaction_type_support_contact,
+  email_open: m.interaction_type_email_open,
+  email_click: m.interaction_type_email_click,
+  feature_use: m.interaction_type_feature_use,
+  login: m.interaction_type_login,
+};
+
+/** An interaction type in the active locale; one the console does not know, humanized. */
+export function interactionTypeLabel(type: string): string {
+  return Object.hasOwn(INTERACTION_TYPES, type) ? INTERACTION_TYPES[type]() : humanize(type);
 }

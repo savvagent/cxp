@@ -2,6 +2,8 @@
 // `feedback_type` URL parameter, and what the list asks the API for. Kept out
 // of the component so it is tested on its own.
 import type { CatalogFilterValues } from "#lib/catalog-filters.js";
+import { option } from "#lib/components/tickets/tickets.js";
+import { m } from "#lib/paraglide/messages.js";
 import { fromFilterSelect } from "#lib/forms.js";
 import { PAGE_SIZE } from "#lib/pagination.js";
 import type { FeedbackListParams } from "#lib/queries/feedback.js";
@@ -10,12 +12,13 @@ import { withParam } from "#lib/url-state.js";
 /** The URL parameter holding the type filter. */
 export const FEEDBACK_TYPE_PARAM = "feedback_type";
 
+/** The feedback types, each label read in the active locale when shown. */
 export const FEEDBACK_TYPES = [
-  { value: "bug_report", label: "Bug Report" },
-  { value: "feature_request", label: "Feature Request" },
-  { value: "complaint", label: "Complaint" },
-  { value: "praise", label: "Praise" },
-  { value: "suggestion", label: "Suggestion" },
+  option("bug_report", m.feedback_type_bug_report),
+  option("feature_request", m.feedback_type_feature_request),
+  option("complaint", m.feedback_type_complaint),
+  option("praise", m.feedback_type_praise),
+  option("suggestion", m.feedback_type_suggestion),
 ] as const;
 
 export type FeedbackBadgeVariant = "destructive" | "default" | "outline" | "secondary";

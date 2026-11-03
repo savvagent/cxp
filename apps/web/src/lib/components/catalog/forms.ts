@@ -1,6 +1,7 @@
 // The catalog pages' create/edit forms: the same zod schemas, defaults and
 // request bodies as the React console's react-hook-form dialogs, framework-free
 // so they are tested on their own.
+import { m } from "#lib/paraglide/messages.js";
 import { z } from "#lib/zod.js";
 import type {
   CreateApplicationInput,
@@ -14,8 +15,11 @@ import type {
 } from "#lib/queries/index.js";
 import type { Application, Component, Experience, MyTeam, Page } from "#lib/types.js";
 
+/** "Name is required", read in the active locale when reported. */
+const nameRequired = { error: () => m.catalog_name_required() };
+
 export const experienceSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, nameRequired),
   description: z.string().optional(),
   team_id: z.string().optional(),
 });
@@ -23,7 +27,7 @@ export const experienceSchema = z.object({
 export const applicationSchema = z.object({
   experience_id: z.string().optional(),
   team_id: z.string().optional(),
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, nameRequired),
   description: z.string().optional(),
   platform: z.string().optional(),
 });
@@ -31,7 +35,7 @@ export const applicationSchema = z.object({
 export const pageSchema = z.object({
   application_id: z.string().optional(),
   team_id: z.string().optional(),
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, nameRequired),
   path: z.string().optional(),
   description: z.string().optional(),
 });
@@ -39,7 +43,7 @@ export const pageSchema = z.object({
 export const componentSchema = z.object({
   page_id: z.string().optional(),
   team_id: z.string().optional(),
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, nameRequired),
   component_type: z.string().optional(),
   description: z.string().optional(),
 });
@@ -191,5 +195,5 @@ export function pageName(pages: readonly Page[], id: string): string {
 
 /** The delete confirmation's text. */
 export function deleteDescription(name: string | undefined): string {
-  return `Are you sure you want to delete "${name}"? This cannot be undone.`;
+  return m.catalog_delete_description({ name: name ?? "" });
 }

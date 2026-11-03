@@ -2,6 +2,7 @@
   // The filter row of the applications, pages and components lists: one
   // select over the parent level, kept in one URL parameter (`experience_id`,
   // `application_id` or `page_id`, as in the React console), and "Clear filter".
+  import { m } from "#lib/paraglide/messages.js";
   import { page } from "$app/state";
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Select from "#lib/components/ui/select/index.js";
@@ -62,6 +63,6 @@
     </Select.Content>
   </Select.Root>
   {#if value}
-    <Button variant="ghost" size="sm" onclick={() => setFilter(undefined)}>Clear filter</Button>
+    <Button variant="ghost" size="sm" onclick={() => setFilter(undefined)}>{m.common_clear_filter()}</Button>
   {/if}
 </div>

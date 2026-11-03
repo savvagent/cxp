@@ -1,5 +1,6 @@
 // The colours of the ticket status and priority badges, as the old console
 // had them. A value the console does not know gets the plain outline badge.
+import { PRIORITY_OPTIONS, STATUS_OPTIONS, type Option } from "#lib/components/tickets/tickets.js";
 
 const STATUS_CLASSES: Record<string, string> = {
   open: "bg-blue-100 text-blue-800 hover:bg-blue-100",
@@ -25,9 +26,18 @@ export function statusClass(status: string): string {
   return own(STATUS_CLASSES, status);
 }
 
-/** A ticket status as a badge shows it: `in_progress` reads `in progress`. */
+/** A ticket status as a badge shows it, in the active locale; an unknown one with its underscores as spaces. */
 export function statusLabel(status: string): string {
-  return status.replace(/_/g, " ");
+  return knownLabel(STATUS_OPTIONS, status) ?? status.replace(/_/g, " ");
+}
+
+/** A ticket priority as a badge shows it, in the active locale; an unknown one as it is. */
+export function priorityLabel(priority: string): string {
+  return knownLabel(PRIORITY_OPTIONS, priority) ?? priority;
+}
+
+function knownLabel(options: readonly Option[], value: string): string | undefined {
+  return options.find((o) => o.value === value)?.label;
 }
 
 /** The colour classes of a ticket priority badge (`""` for an unknown priority). */

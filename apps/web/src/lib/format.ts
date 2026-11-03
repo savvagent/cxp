@@ -1,19 +1,20 @@
-// How the console shows dates. Each page keeps the format it always had, so
-// the formats differ: the customer pages spell dates in en-US, the other pages
-// use the browser's locale.
+// How the console shows dates and numbers: always in the active locale (the
+// one `#lib/locale.js` resolved at boot, read through Paraglide's `getLocale`).
+// The pages keep the date shapes they always had, so the shapes differ.
+import { getLocale } from "#lib/paraglide/runtime.js";
 
-/** `Jan 5, 2026` (en-US): the customer pages. */
+/** `Jan 5, 2026` in English, `5 ene 2026` in Spanish: the customer pages. */
 export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
+  return new Date(iso).toLocaleDateString(getLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
   });
 }
 
-/** `Jan 5, 2026, 3:04 PM` (en-US, numeric hour): a customer's interactions. */
+/** `Jan 5, 2026, 3:04 PM` in English (numeric hour): a customer's interactions. */
 export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", {
+  return new Date(iso).toLocaleString(getLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -22,9 +23,9 @@ export function formatDateTime(iso: string): string {
   });
 }
 
-/** A short date and a two-digit time in the browser's locale: a ticket's dates. */
+/** A short date and a two-digit time: a ticket's dates. */
 export function formatLocaleDateTime(iso: string): string {
-  return new Date(iso).toLocaleString(undefined, {
+  return new Date(iso).toLocaleString(getLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -33,12 +34,17 @@ export function formatLocaleDateTime(iso: string): string {
   });
 }
 
-/** The browser's default date (`toLocaleDateString()`): the list pages' dates. */
+/** The locale's default date: the list pages' dates. */
 export function localeDate(iso: string): string {
-  return new Date(iso).toLocaleDateString();
+  return new Date(iso).toLocaleDateString(getLocale());
 }
 
-/** The browser's default date and time (`toLocaleString()`): a survey response's completion. */
+/** The locale's default date and time: a survey response's completion. */
 export function localeDateTime(iso: string): string {
-  return new Date(iso).toLocaleString();
+  return new Date(iso).toLocaleString(getLocale());
+}
+
+/** A count with the locale's grouping: `1,234` in English, `1.234` in German. */
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat(getLocale()).format(value);
 }

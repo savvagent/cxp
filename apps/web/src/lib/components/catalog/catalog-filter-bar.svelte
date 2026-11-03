@@ -4,6 +4,7 @@
   // `useSearchParams`, this one reads and writes the URL itself (the same
   // `experience_id`, `application_id`, `page_id`, `component_id` parameters),
   // so a page only renders it and reads `catalogFiltersFromUrl(searchOf(page.url))`.
+  import { m } from "#lib/paraglide/messages.js";
   import FilterX from "@lucide/svelte/icons/filter-x";
   import { page } from "$app/state";
   import { catalogFiltersFromUrl, type CatalogFilterValues } from "#lib/catalog-filters.js";
@@ -37,21 +38,21 @@
   const filters = $derived([
     {
       key: "experienceId" as const,
-      all: "All experiences",
-      aria: "Filter by experience",
+      all: m.catalog_all_experiences(),
+      aria: m.catalog_filter_experience(),
       items: experiences.data?.data ?? [],
     },
     {
       key: "applicationId" as const,
-      all: "All applications",
-      aria: "Filter by application",
+      all: m.catalog_all_applications(),
+      aria: m.catalog_filter_application(),
       items: applications.data?.data ?? [],
     },
-    { key: "pageId" as const, all: "All pages", aria: "Filter by page", items: pages.data?.data ?? [] },
+    { key: "pageId" as const, all: m.catalog_all_pages(), aria: m.catalog_filter_page(), items: pages.data?.data ?? [] },
     {
       key: "componentId" as const,
-      all: "All components",
-      aria: "Filter by component",
+      all: m.catalog_all_components(),
+      aria: m.catalog_filter_component(),
       items: components.data?.data ?? [],
     },
   ]);
@@ -94,7 +95,7 @@
   {#if hasFilters}
     <Button variant="ghost" size="sm" onclick={() => apply({})} class="gap-1.5">
       <FilterX class="h-4 w-4" />
-      Clear catalog filters
+      {m.catalog_clear_filters()}
     </Button>
   {/if}
 </div>

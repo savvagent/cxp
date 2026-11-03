@@ -1,5 +1,6 @@
 // The console's list paging: the page sizes and the window a page shows.
 // Framework-free, so it is tested on its own.
+import { formatNumber } from "./format.js";
 
 /** The page size of every paged list except customers. */
 export const PAGE_SIZE = 20;
@@ -35,8 +36,17 @@ export function pageWindow(total: number, page: number, pageSize: number = PAGE_
 
 /**
  * The "Showing n of total" footer of a list that shows its first page only,
- * or `null` when everything fits on that page.
+ * or `null` when everything fits on that page. `line` words it (a message of
+ * the list's own, e.g. "Showing {shown} of {total} surveys") from the two
+ * counts, already formatted for the active locale.
  */
-export function showingLine(pageSize: number, shown: number, total: number, noun: string): string | null {
-  return total > pageSize ? `Showing ${Math.min(pageSize, shown)} of ${total} ${noun}` : null;
+export function showingLine(
+  pageSize: number,
+  shown: number,
+  total: number,
+  line: (counts: { shown: string; total: string }) => string,
+): string | null {
+  return total > pageSize
+    ? line({ shown: formatNumber(Math.min(pageSize, shown)), total: formatNumber(total) })
+    : null;
 }

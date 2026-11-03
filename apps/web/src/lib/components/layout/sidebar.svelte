@@ -1,9 +1,10 @@
 <script lang="ts">
   // The desktop sidebar: collapsible to icons, with a collapsible catalog section.
+  import { m } from "#lib/paraglide/messages.js";
   import ChevronDown from "@lucide/svelte/icons/chevron-down";
   import Zap from "@lucide/svelte/icons/zap";
   import { cn } from "#lib/utils.js";
-  import { CATALOG_ITEMS, CATALOG_LABEL, NAV_ITEMS } from "./nav.js";
+  import { CATALOG_ITEMS, NAV_ITEMS, catalogLabel } from "./nav.js";
   import NavItem from "./nav-item.svelte";
 
   let { collapsed, onToggle }: { collapsed: boolean; onToggle: () => void } = $props();
@@ -22,7 +23,7 @@
       type="button"
       onclick={onToggle}
       class="flex items-center gap-2"
-      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      aria-label={collapsed ? m.shell_expand_sidebar() : m.shell_collapse_sidebar()}
       aria-expanded={!collapsed}
     >
       <Zap class="h-5 w-5 text-primary" />
@@ -43,7 +44,7 @@
           aria-expanded={catalogOpen}
           class="flex w-full items-center gap-2 px-3 py-2 text-xs font-medium uppercase text-muted-foreground"
         >
-          <span>{CATALOG_LABEL}</span>
+          <span>{catalogLabel()}</span>
           <ChevronDown class={cn("h-3 w-3 transition-transform", catalogOpen && "rotate-180")} />
         </button>
         {#if catalogOpen}

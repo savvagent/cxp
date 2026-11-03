@@ -22,8 +22,10 @@ cargo test -p cxp-core test_name         # one test
 server start (`cxp_core::migrate`) while `CXP_RUN_MIGRATIONS` is `true` (local default); a deployment
 migrates only through `cxp-server migrate`. `cargo run` serves the web console at `/console/` only after
 `pnpm build` has produced `apps/web/dist` (the default `CXP_CONSOLE_DIR`); without it `/console/`
-is a JSON 404 and everything else works. `pnpm build` in `apps/web` runs `svelte-kit sync`,
-`svelte-check` (over `src`, `test` and `scripts`), `vite build`, then
+is a JSON 404 and everything else works. `pnpm build` in `apps/web` runs `paraglide:compile`
+(messages into the git-ignored `src/lib/paraglide/`; it fetches the inlang plugin from jsDelivr, so
+it needs the network), `check:messages` (every locale has every key, with the same placeholders),
+`svelte-kit sync`, `svelte-check` (over `src`, `test` and `scripts`), `vite build`, then
 `scripts/extract-inline-scripts.mjs` (moves the inline boot script out of `dist/index.html`: the
 server's CSP is `script-src 'self'`); `pnpm test` there needs the build's `dist/sw.js` and
 `dist/index.html`.
@@ -74,7 +76,10 @@ is a JSON 404.
 - `sdk/typescript/` - `@cxp/sdk` (MIT): `connectCxp({ url, token | authProvider })` returns `{ cxp }` with
   `.support`, `.feedback`, `.cdp`.
 - `packages/react/` - `@cxp/react` (MIT): components and hooks over `@cxp/sdk`. `apps/web/` - `@cxp/web`, the
-  web console: a static SvelteKit 3 (Svelte 5) app served under `/console/`.
+  web console: a static SvelteKit 3 (Svelte 5) app served under `/console/`, localized with Paraglide
+  (`messages/{en,es,de,fr,it,hi}.json`, the platform console's locales; `src/lib/locale.ts` picks
+  the stored choice, else the browser's, else `en`). Every user-visible string is a message read when
+  shown (`m.key()`), never a module-level string, since modules load before the locale resolves.
 - `sdk/swift/`, `sdk/kotlin/` - stubs with no gate.
 
 ## Critical Patterns

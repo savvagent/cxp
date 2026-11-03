@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from "#lib/paraglide/messages.js";
   import { toast } from "svelte-sonner";
   import { toastError } from "#lib/errors.js";
   import { Button } from "#lib/components/ui/button/index.js";
@@ -55,10 +56,10 @@
     try {
       await updateCustomer.mutateAsync({ id: customer.id, data: r.data });
     } catch (err) {
-      toastError(err, "Failed to update customer");
+      toastError(err, m.customer_update_failed());
       return;
     }
-    toast.success("Customer updated");
+    toast.success(m.customer_updated());
     handleClose();
   }
 </script>
@@ -71,19 +72,17 @@
 >
   <Dialog.Content class="sm:max-w-[480px]">
     <Dialog.Header>
-      <Dialog.Title>Edit Customer</Dialog.Title>
-      <Dialog.Description>
-        Update profile details for {displayName(customer)}.
-      </Dialog.Description>
+      <Dialog.Title>{m.customer_edit_title()}</Dialog.Title>
+      <Dialog.Description>{m.customer_edit_description({ name: displayName(customer) })}</Dialog.Description>
     </Dialog.Header>
 
     <form {onsubmit} class="space-y-4">
       <CustomerFormFields bind:values {errors} idPrefix="edit-" oninput={revalidate} />
 
       <Dialog.Footer>
-        <Button type="button" variant="outline" onclick={handleClose}>Cancel</Button>
+        <Button type="button" variant="outline" onclick={handleClose}>{m.common_cancel()}</Button>
         <Button type="submit" disabled={updateCustomer.isPending}>
-          {updateCustomer.isPending ? "Saving..." : "Save Changes"}
+          {updateCustomer.isPending ? m.common_saving() : m.common_save_changes()}
         </Button>
       </Dialog.Footer>
     </form>

@@ -1,6 +1,7 @@
 <script lang="ts">
   // Cmd/Ctrl+K (or the header's search button): go to a page, or find a
   // customer or a recent ticket.
+  import { m } from "#lib/paraglide/messages.js";
   import TicketIcon from "@lucide/svelte/icons/ticket";
   import Users from "@lucide/svelte/icons/users";
   import { goto } from "$app/navigation";
@@ -8,6 +9,7 @@
   import { customersApi, ticketsApi } from "#lib/api/index.js";
   import { PALETTE_ITEMS } from "#lib/components/layout/nav.js";
   import { NAV_ICONS } from "#lib/components/layout/nav-icons.js";
+  import { statusLabel } from "#lib/components/shared/badges.js";
   import * as Command from "#lib/components/ui/command/index.js";
   import {
     NO_RESULTS,
@@ -65,15 +67,15 @@
 
 <Command.Dialog
   bind:open
-  title="Command palette"
-  description="Search customers, tickets, or navigate"
+  title={m.palette_title()}
+  description={m.palette_description()}
   class="sm:max-w-lg"
 >
-  <Command.Input placeholder="Search customers, tickets, or navigate..." bind:value={query} />
+  <Command.Input placeholder={m.palette_placeholder()} bind:value={query} />
   <Command.List class="max-h-[300px] p-1">
-    <Command.Empty class="text-muted-foreground">{loading ? "Searching..." : "No results found."}</Command.Empty>
+    <Command.Empty class="text-muted-foreground">{loading ? m.palette_searching() : m.palette_no_results()}</Command.Empty>
 
-    <Command.Group heading="Navigation">
+    <Command.Group heading={m.palette_group_navigation()}>
       {#each PALETTE_ITEMS as item (item.to)}
         {@const Icon = NAV_ICONS[item.to]}
         <Command.Item value={item.label} onSelect={() => go(resolve(item.to))} class="cursor-pointer">
@@ -86,7 +88,7 @@
     <!-- Server results are already matches: `keywords` keeps the palette's own
          fuzzy filter, which only sees each item's value, from hiding them. -->
     {#if results.customers.length > 0}
-      <Command.Group heading="Customers">
+      <Command.Group heading={m.nav_customers()}>
         {#each results.customers as c (c.id)}
           <Command.Item
             value={`customer-${c.id}`}
@@ -105,7 +107,7 @@
     {/if}
 
     {#if results.tickets.length > 0}
-      <Command.Group heading="Tickets">
+      <Command.Group heading={m.nav_tickets()}>
         {#each results.tickets as t (t.id)}
           <Command.Item
             value={`ticket-${t.id}`}
@@ -115,7 +117,7 @@
           >
             <TicketIcon class="h-4 w-4" />
             <span class="flex-1 truncate">{t.subject}</span>
-            <span class="text-xs text-muted-foreground">{t.status}</span>
+            <span class="text-xs text-muted-foreground">{statusLabel(t.status)}</span>
           </Command.Item>
         {/each}
       </Command.Group>

@@ -1,4 +1,5 @@
 import { ApiError } from "./api-error";
+import { m } from "./paraglide/messages.js";
 import { queryClient } from "./query-client";
 import { markSignedOut } from "./session";
 
@@ -36,7 +37,7 @@ export async function apiFetch<T>(
     const body = await response.json().catch(() => ({}));
     throw new ApiError(
       response.status,
-      body.error_description || body.error || `Request failed: ${response.statusText}`,
+      body.error_description || body.error || m.error_request_failed({ status: response.statusText || String(response.status) }),
     );
   }
 

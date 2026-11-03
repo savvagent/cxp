@@ -1,3 +1,4 @@
+import { m } from "#lib/paraglide/messages.js";
 import { describe, expect, it } from "vitest";
 import { validate } from "#lib/forms.js";
 import { showingLine } from "#lib/pagination.js";
@@ -142,8 +143,8 @@ describe("labels", () => {
   });
 
   it("shows the paging footer only past one page", () => {
-    expect(showingLine(20, 20, 20, "pages")).toBeNull();
-    expect(showingLine(20, 20, 45, "pages")).toBe("Showing 20 of 45 pages");
+    expect(showingLine(20, 20, 20, m.catalog_page_showing)).toBeNull();
+    expect(showingLine(20, 20, 45, m.catalog_page_showing)).toBe("Showing 20 of 45 pages");
   });
 
   it("quotes the name in the delete confirmation", () => {

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from "#lib/paraglide/messages.js";
   import Building2 from "@lucide/svelte/icons/building-complex";
   import Calendar from "@lucide/svelte/icons/calendar";
   import Mail from "@lucide/svelte/icons/mail";
@@ -29,7 +30,7 @@
           {#if customer.name != null}
             {customer.name}
           {:else}
-            <span class="font-normal text-muted-foreground italic">No name</span>
+            <span class="font-normal text-muted-foreground italic">{m.customer_no_name()}</span>
           {/if}
         </Card.Title>
         <p class="mt-0.5 text-sm text-muted-foreground">{customer.email}</p>
@@ -37,7 +38,7 @@
     </div>
     <Button variant="outline" size="sm" onclick={onEdit}>
       <Pencil class="mr-2 h-3.5 w-3.5" />
-      Edit
+      {m.common_edit()}
     </Button>
   </Card.Header>
 
@@ -68,12 +69,12 @@
 
       <div class="flex items-center gap-2 text-muted-foreground">
         <Calendar class="h-4 w-4 shrink-0" aria-hidden="true" />
-        <span>Customer since {formatDate(customer.createdAt)}</span>
+        <span>{m.customer_since({ date: formatDate(customer.createdAt) })}</span>
       </div>
     </dl>
 
     {#if customer.tags.length > 0}
-      <div class="mt-4 flex flex-wrap gap-1.5" aria-label="Tags">
+      <div class="mt-4 flex flex-wrap gap-1.5" aria-label={m.label_tags()}>
         {#each customer.tags as tag (tag)}
           <Badge variant="secondary" class="text-xs">{tag}</Badge>
         {/each}

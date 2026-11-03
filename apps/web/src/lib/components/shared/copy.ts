@@ -1,5 +1,6 @@
 // What `CopyableId` does when clicked, kept free of Svelte and the DOM so it
 // can be tested without either.
+import { m } from "#lib/paraglide/messages.js";
 
 /** How long the copied tick shows before the copy icon comes back. */
 export const COPIED_MS = 2000;
@@ -29,11 +30,11 @@ export async function copyValue(value: string, deps: CopyDeps): Promise<boolean>
     if (!deps.writeText) throw new Error("no clipboard");
     await deps.writeText(value);
   } catch {
-    deps.error("Could not copy to the clipboard");
+    deps.error(m.copy_failed());
     return false;
   }
   deps.setCopied(true);
-  deps.success("Copied!");
+  deps.success(m.copy_done());
   deps.schedule(() => deps.setCopied(false), COPIED_MS);
   return true;
 }

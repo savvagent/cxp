@@ -1,6 +1,7 @@
 <script lang="ts">
   // The create and edit customer forms' fields, as the React dialogs laid them
   // out; `idPrefix` keeps the two forms' element ids apart ("" and "edit-").
+  import { m } from "#lib/paraglide/messages.js";
   import { Input } from "#lib/components/ui/input/index.js";
   import { Label } from "#lib/components/ui/label/index.js";
   import type { CustomerForm, CustomerFormErrors } from "./customers.js";
@@ -24,7 +25,7 @@
 <!-- Email -->
 <div class="space-y-1.5">
   <Label for="{idPrefix}email">
-    Email <span aria-hidden="true" class="text-destructive">*</span>
+    {m.label_email()} <span aria-hidden="true" class="text-destructive">*</span>
   </Label>
   <Input
     id="{idPrefix}email"
@@ -47,12 +48,12 @@
 
 <!-- Name -->
 <div class="space-y-1.5">
-  <Label for="{idPrefix}name">Name</Label>
+  <Label for="{idPrefix}name">{m.label_name()}</Label>
   <Input
     id="{idPrefix}name"
     name="name"
     autocomplete="name"
-    placeholder={placeholders ? "Full name" : undefined}
+    placeholder={placeholders ? m.customer_name_placeholder() : undefined}
     bind:value={values.name}
     {oninput}
   />
@@ -60,7 +61,7 @@
 
 <!-- Phone -->
 <div class="space-y-1.5">
-  <Label for="{idPrefix}phone">Phone</Label>
+  <Label for="{idPrefix}phone">{m.label_phone()}</Label>
   <Input
     id="{idPrefix}phone"
     name="phone"
@@ -74,7 +75,7 @@
 
 <!-- Company -->
 <div class="space-y-1.5">
-  <Label for="{idPrefix}company">Company</Label>
+  <Label for="{idPrefix}company">{m.label_company()}</Label>
   <Input
     id="{idPrefix}company"
     name="company"
@@ -87,11 +88,11 @@
 
 <!-- Tags -->
 <div class="space-y-1.5">
-  <Label for="{idPrefix}tags">Tags</Label>
+  <Label for="{idPrefix}tags">{m.label_tags()}</Label>
   <Input
     id="{idPrefix}tags"
     name="tags"
-    placeholder="vip, enterprise (comma separated)"
+    placeholder={m.customer_tags_placeholder()}
     bind:value={values.tags}
     {oninput}
   />

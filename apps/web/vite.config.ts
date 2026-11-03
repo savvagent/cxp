@@ -82,6 +82,6 @@ export default defineConfig({
     },
   },
   test: {
-    include: ["src/**/*.test.ts", "test/**/*.test.ts"],
+    include: ["src/**/*.test.ts", "test/**/*.test.ts", "scripts/**/*.test.mjs"],
   },
 });

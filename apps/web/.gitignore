@@ -1,2 +1,6 @@
 # SvelteKit generated output (svelte-kit sync, vite build)
 .svelte-kit/
+
+# Paraglide's compiled messages and runtime (`pnpm run paraglide:compile`,
+# run first by dev, build, check and test), generated from messages/*.json.
+src/lib/paraglide/

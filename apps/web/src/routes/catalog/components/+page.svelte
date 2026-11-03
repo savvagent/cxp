@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from "#lib/paraglide/messages.js";
   import Puzzle from "@lucide/svelte/icons/puzzle";
   import CatalogListPage from "#lib/components/catalog/catalog-list-page.svelte";
   import {
@@ -13,12 +14,21 @@
   import type { Component, Page } from "#lib/types.js";
 
   const config = {
-    title: "Components",
-    singular: "Component",
-    noun: "component",
-    plural: "components",
+    text: {
+      title: m.nav_components(),
+      create: m.catalog_component_new(),
+      edit: m.catalog_component_edit(),
+      delete: m.catalog_component_delete(),
+      created: m.catalog_component_created(),
+      updated: m.catalog_component_updated(),
+      deleted: m.catalog_component_deleted(),
+      editAria: m.catalog_component_edit_aria(),
+      deleteAria: m.catalog_component_delete_aria(),
+      empty: m.catalog_component_empty(),
+      emptyDescription: m.catalog_component_empty_description(),
+      showing: m.catalog_component_showing,
+    },
     icon: Puzzle,
-    emptyDescription: "Create your first component to add it to the catalog.",
     queries: componentQueries,
     listParams: (paging: { limit: number; offset: number }, pageId: string | undefined) => ({
       pageId,
@@ -29,18 +39,18 @@
       list: pageQueries.list,
       options: pageOptions,
       // Wider than the others: the options show each page's path.
-      filter: { allLabel: "All pages", ariaLabel: "Filter by page", class: "w-[220px]" },
-      field: { field: "page_id", label: "Page", idSuffix: "page" },
+      filter: { allLabel: m.catalog_all_pages(), ariaLabel: m.catalog_filter_page(), class: "w-[220px]" },
+      field: { field: "page_id", label: m.label_page(), idSuffix: "page" },
     },
     columns: [
       {
-        head: "Component Type",
+        head: m.label_component_type(),
         headClass: "hidden sm:table-cell",
         cellClass: "hidden text-sm text-muted-foreground sm:table-cell",
         text: (comp: Component) => comp.componentType ?? "—",
       },
       {
-        head: "Page",
+        head: m.label_page(),
         headClass: "hidden md:table-cell",
         cellClass: "hidden text-sm md:table-cell",
         text: (comp: Component, pages: readonly Page[]) => (comp.pageId ? pageName(pages, comp.pageId) : "—"),
@@ -56,12 +66,12 @@
       initial: componentFormValues,
       createInput: componentCreateInput,
       updateInput: componentUpdateInput,
-      namePlaceholder: "Hero Banner",
+      namePlaceholder: m.catalog_component_name_placeholder(),
       extra: {
         field: "component_type",
-        label: "Component Type",
+        label: m.label_component_type(),
         idSuffix: "type",
-        placeholder: "button / form / modal / banner",
+        placeholder: m.catalog_component_type_placeholder(),
       },
     },
   };

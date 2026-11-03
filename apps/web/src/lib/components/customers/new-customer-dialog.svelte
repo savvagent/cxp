@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { m } from "#lib/paraglide/messages.js";
   import { toast } from "svelte-sonner";
   import { toastError } from "#lib/errors.js";
   import { Button } from "#lib/components/ui/button/index.js";
@@ -45,10 +46,10 @@
     try {
       await createCustomer.mutateAsync(r.data);
     } catch (err) {
-      toastError(err, "Failed to create customer");
+      toastError(err, m.customer_create_failed());
       return;
     }
-    toast.success("Customer created");
+    toast.success(m.customer_created());
     handleClose();
   }
 </script>
@@ -61,19 +62,17 @@
 >
   <Dialog.Content class="sm:max-w-[480px]">
     <Dialog.Header>
-      <Dialog.Title>New Customer</Dialog.Title>
-      <Dialog.Description>
-        Add a new customer to your CXP database. Email is required.
-      </Dialog.Description>
+      <Dialog.Title>{m.customers_new()}</Dialog.Title>
+      <Dialog.Description>{m.customer_new_description()}</Dialog.Description>
     </Dialog.Header>
 
     <form {onsubmit} class="space-y-4">
       <CustomerFormFields bind:values {errors} placeholders oninput={revalidate} />
 
       <Dialog.Footer>
-        <Button type="button" variant="outline" onclick={handleClose}>Cancel</Button>
+        <Button type="button" variant="outline" onclick={handleClose}>{m.common_cancel()}</Button>
         <Button type="submit" disabled={createCustomer.isPending}>
-          {createCustomer.isPending ? "Creating..." : "Create Customer"}
+          {createCustomer.isPending ? m.common_creating() : m.customer_create()}
         </Button>
       </Dialog.Footer>
     </form>
