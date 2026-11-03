@@ -1,6 +1,6 @@
-// The console's navigation, framework-free: which item a path makes active and
-// what the header calls the page. Ported from the React console's sidebar, mobile nav
-// and header, where React Router's paths had no `/console` prefix.
+// The console's navigation, framework-free: the sidebar's, the mobile nav's
+// and the command palette's items, which item a path makes active, and what
+// the header calls the page. Paths are within the console (no `/console`).
 
 /** The console's base path, as the browser's `pathname` carries it. */
 export const CONSOLE_BASE_PATH = "/console";
@@ -21,6 +21,12 @@ export const CATALOG_ITEMS = [
   { to: "/catalog/pages", label: "Pages" },
   { to: "/catalog/components", label: "Components" },
 ] as const;
+
+/** The catalog section's heading. */
+export const CATALOG_LABEL = "Catalog";
+
+/** The command palette's navigation: the top-level items, then the catalog (its first level). */
+export const PALETTE_ITEMS = [...NAV_ITEMS, { to: CATALOG_ITEMS[0].to, label: CATALOG_LABEL }] as const;
 
 /** Every route the navigation links to. */
 export type NavPath = (typeof NAV_ITEMS)[number]["to"] | (typeof CATALOG_ITEMS)[number]["to"];

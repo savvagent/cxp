@@ -1,5 +1,5 @@
-// Port of the React console's src/hooks/use-customers.ts: the same query keys, `enabled`
-// and invalidations, as option factories (testable without a component) and
+// The customer queries, with the React console's query keys, `enabled` and
+// invalidations, as option factories (testable without a component) and
 // the thin `create…` wrappers that components call.
 import {
   createMutation,
@@ -24,12 +24,12 @@ export type UpdateCustomerInput = { id: string; data: Parameters<typeof customer
 /**
  * Query keys: `["customers"]`, `["customers", "list", params]`,
  * `["customers", "detail", id]`, plus `["customers", id, "360"]` (the key the
- * React customer page used inline) and `["customers", "search", q]`.
+ * React customer page used inline). The command palette searches through the
+ * API directly, so a search has no key.
  */
 export const customerKeys = {
   ...entityKeys("customers"),
   customer360: (id: string) => ["customers", id, "360"] as const,
-  search: (q: string) => ["customers", "search", q] as const,
 };
 
 /** Options for one page of customers. */
@@ -61,22 +61,6 @@ export function customer360Options(id: string | undefined) {
   });
 }
 
-/** The shortest query `customerSearchOptions` searches for, as the React command palette required. */
-export const CUSTOMER_SEARCH_MIN_LENGTH = 2;
-
-/**
- * Options for a customer search; disabled below
- * {@link CUSTOMER_SEARCH_MIN_LENGTH} characters. The React command palette
- * called `customersApi.search` directly; this gives its port a key.
- */
-export function customerSearchOptions(q: string) {
-  return queryOptions({
-    queryKey: customerKeys.search(q),
-    queryFn: () => customersApi.search(q),
-    enabled: q.length >= CUSTOMER_SEARCH_MIN_LENGTH,
-  });
-}
-
 /** Replaces `useCustomers(params)`. `params` is a getter, so the query follows reactive filters. */
 export function createCustomers(params: Accessor<CustomerListParams | undefined> = () => undefined) {
   return createQuery(() => customerListOptions(params()));
@@ -90,11 +74,6 @@ export function createCustomer(id: Accessor<string | undefined>) {
 /** Replaces the customer page's inline `useQuery` of `customersApi.get360(id)`. */
 export function createCustomer360(id: Accessor<string | undefined>) {
   return createQuery(() => customer360Options(id()));
-}
-
-/** A customer search that follows a reactive query string. */
-export function createCustomerSearch(q: Accessor<string>) {
-  return createQuery(() => customerSearchOptions(q()));
 }
 
 /** Creates a customer, then refreshes every customer list. */

@@ -1,11 +1,6 @@
 import { QueryClient } from "@tanstack/svelte-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  CUSTOMER_SEARCH_MIN_LENGTH,
-  customer360Options,
-  customerKeys,
-  customerSearchOptions,
-} from "./customers";
+import { customer360Options, customerKeys } from "./customers";
 import { dashboardKeys, dashboardMetricsOptions } from "./dashboard";
 import { feedbackKeys, feedbackListOptions } from "./feedback";
 import * as queries from "./index";
@@ -88,19 +83,6 @@ describe("customer 360", () => {
   });
 });
 
-describe("customer search", () => {
-  it("searches only from the palette's minimum length", async () => {
-    expect(CUSTOMER_SEARCH_MIN_LENGTH).toBe(2);
-    expect(customerKeys.search("ada")).toEqual(["customers", "search", "ada"]);
-    expect(customerSearchOptions("a").enabled).toBe(false);
-    const options = customerSearchOptions("ad a");
-    expect(options.enabled).toBe(true);
-    expect(options.queryKey).toEqual(["customers", "search", "ad a"]);
-    const request = await fetchOnce(options, { data: [], total: 0, totalCapped: false });
-    expect(request.path).toBe("/api/v1/customers/search?q=ad%20a");
-  });
-});
-
 describe("survey responses", () => {
   it("nest under the survey's detail key, and wait for an id", async () => {
     expect(surveyKeys.responses(ID)).toEqual(["surveys", "detail", ID, "responses", {}]);
@@ -118,7 +100,7 @@ describe("the index", () => {
   it("exports a create… wrapper for every React hook", () => {
     const replaced = [
       "createCustomers", "createCustomer", "createCreateCustomer", "createUpdateCustomer", "createDeleteCustomer",
-      "createCustomer360", "createCustomerSearch",
+      "createCustomer360",
       "createDashboardMetrics",
       "createFeedback",
       "createMyTeams",

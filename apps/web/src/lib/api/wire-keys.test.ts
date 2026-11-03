@@ -88,4 +88,12 @@ describe("the console sends camelCase keys", () => {
     expect(found.totalCapped).toBe(false);
     expect(found.data[0].email).toBe(wire.customer.email);
   });
+
+  it("and encodes the search query", async () => {
+    const calls = record(wire.customerSearch);
+    await customersApi.search("ad a&b");
+    expect(calls[0].url.pathname).toBe("/api/v1/customers/search");
+    expect(calls[0].url.searchParams.get("q")).toBe("ad a&b");
+    expect([...calls[0].url.searchParams.keys()]).toEqual(["q"]);
+  });
 });

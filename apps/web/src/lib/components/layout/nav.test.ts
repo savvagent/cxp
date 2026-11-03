@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { consolePath, isNavActive, routeTitle } from "./nav.js";
+import { PALETTE_ITEMS, consolePath, isNavActive, routeTitle } from "./nav.js";
 
 describe("consolePath", () => {
   it("strips the console base", () => {
@@ -50,5 +50,18 @@ describe("routeTitle", () => {
     expect(routeTitle("/console/")).toBe("CXP");
     expect(routeTitle("/console/catalog")).toBe("CXP");
     expect(routeTitle("/console/nowhere")).toBe("CXP");
+  });
+});
+
+describe("PALETTE_ITEMS", () => {
+  it("are the palette's navigation: the top-level items, then the catalog", () => {
+    expect(PALETTE_ITEMS.map(({ to, label }) => [to, label])).toEqual([
+      ["/dashboard", "Dashboard"],
+      ["/customers", "Customers"],
+      ["/tickets", "Tickets"],
+      ["/feedback", "Feedback"],
+      ["/surveys", "Surveys"],
+      ["/catalog/experiences", "Catalog"],
+    ]);
   });
 });

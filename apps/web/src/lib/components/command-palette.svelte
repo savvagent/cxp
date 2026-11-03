@@ -1,15 +1,13 @@
 <script lang="ts">
   // Cmd/Ctrl+K (or the header's search button): go to a page, or find a
-  // customer or a recent ticket. Ported from the React console's command-palette.tsx.
-  import ClipboardList from "@lucide/svelte/icons/clipboard-list";
-  import Layers from "@lucide/svelte/icons/layers";
-  import LayoutDashboard from "@lucide/svelte/icons/layout-dashboard";
-  import MessageSquare from "@lucide/svelte/icons/message-square";
+  // customer or a recent ticket.
   import TicketIcon from "@lucide/svelte/icons/ticket";
   import Users from "@lucide/svelte/icons/users";
   import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
   import { customersApi, ticketsApi } from "#lib/api/index.js";
+  import { PALETTE_ITEMS } from "#lib/components/layout/nav.js";
+  import { NAV_ICONS } from "#lib/components/layout/nav-icons.js";
   import * as Command from "#lib/components/ui/command/index.js";
   import {
     NO_RESULTS,
@@ -25,15 +23,6 @@
   let query = $state("");
   let results = $state<PaletteResults>(NO_RESULTS);
   let loading = $state(false);
-
-  const navigation = [
-    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/customers", label: "Customers", icon: Users },
-    { path: "/tickets", label: "Tickets", icon: TicketIcon },
-    { path: "/feedback", label: "Feedback", icon: MessageSquare },
-    { path: "/surveys", label: "Surveys", icon: ClipboardList },
-    { path: "/catalog/experiences", label: "Catalog", icon: Layers },
-  ] as const;
 
   const api = {
     searchCustomers: (q: string) => customersApi.search(q),
@@ -85,9 +74,10 @@
     <Command.Empty class="text-muted-foreground">{loading ? "Searching..." : "No results found."}</Command.Empty>
 
     <Command.Group heading="Navigation">
-      {#each navigation as item (item.path)}
-        <Command.Item value={item.label} onSelect={() => go(resolve(item.path))} class="cursor-pointer">
-          <item.icon class="h-4 w-4" />
+      {#each PALETTE_ITEMS as item (item.to)}
+        {@const Icon = NAV_ICONS[item.to]}
+        <Command.Item value={item.label} onSelect={() => go(resolve(item.to))} class="cursor-pointer">
+          <Icon class="h-4 w-4" />
           {item.label}
         </Command.Item>
       {/each}
