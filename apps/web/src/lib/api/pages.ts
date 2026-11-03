@@ -17,7 +17,7 @@ export const pagesApi = {
     );
   },
 
-  get: (id: string) => apiFetch<Page>(`/pages/${id}`),
+  get: (id: string) => apiFetch<Page>(`/pages/${encodeURIComponent(id)}`),
 
   create: (data: {
     applicationId?: string;
@@ -35,11 +35,11 @@ export const pagesApi = {
     id: string,
     data: { name?: string; path?: string; description?: string; teamId?: string | null },
   ) =>
-    apiFetch<Page>(`/pages/${id}`, {
+    apiFetch<Page>(`/pages/${encodeURIComponent(id)}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiFetch<{ deleted: boolean }>(`/pages/${id}`, { method: "DELETE" }),
+    apiFetch<{ deleted: boolean }>(`/pages/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

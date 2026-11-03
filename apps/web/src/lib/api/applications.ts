@@ -17,7 +17,7 @@ export const applicationsApi = {
     );
   },
 
-  get: (id: string) => apiFetch<Application>(`/applications/${id}`),
+  get: (id: string) => apiFetch<Application>(`/applications/${encodeURIComponent(id)}`),
 
   create: (data: {
     experienceId?: string;
@@ -35,13 +35,13 @@ export const applicationsApi = {
     id: string,
     data: { name?: string; description?: string; platform?: string; teamId?: string | null },
   ) =>
-    apiFetch<Application>(`/applications/${id}`, {
+    apiFetch<Application>(`/applications/${encodeURIComponent(id)}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiFetch<{ deleted: boolean }>(`/applications/${id}`, {
+    apiFetch<{ deleted: boolean }>(`/applications/${encodeURIComponent(id)}`, {
       method: "DELETE",
     }),
 };

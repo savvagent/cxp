@@ -4,6 +4,7 @@ import wire from "../../../../../crates/cxp-api/tests/fixtures/wire.json";
 import { applicationsApi } from "./applications";
 import { componentsApi } from "./components";
 import { customersApi } from "./customers";
+import { experiencesApi } from "./experiences";
 import { feedbackApi } from "./feedback";
 import { pagesApi } from "./pages";
 import { surveysApi } from "./surveys";
@@ -95,5 +96,50 @@ describe("the console sends camelCase keys", () => {
     expect(calls[0].url.pathname).toBe("/api/v1/customers/search");
     expect(calls[0].url.searchParams.get("q")).toBe("ad a&b");
     expect([...calls[0].url.searchParams.keys()]).toEqual(["q"]);
+  });
+});
+
+describe("ids in a path are one encoded segment", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  // An id is data: one like this must not walk to another resource.
+  const HOSTILE = "../surveys/x?y#z";
+  const ENCODED = "..%2Fsurveys%2Fx%3Fy%23z";
+
+  it.each([
+    ["applications", applicationsApi],
+    ["components", componentsApi],
+    ["customers", customersApi],
+    ["experiences", experiencesApi],
+    ["pages", pagesApi],
+    ["surveys", surveysApi],
+    ["tickets", ticketsApi],
+  ] as const)("%s: get, update and delete", async (name, api) => {
+    const calls = record({ id: ID });
+    await api.get(HOSTILE);
+    await api.update(HOSTILE, {} as never);
+    await api.delete(HOSTILE);
+    expect(calls.map((c) => c.url.pathname)).toEqual([
+      `/api/v1/${name}/${ENCODED}`,
+      `/api/v1/${name}/${ENCODED}`,
+      `/api/v1/${name}/${ENCODED}`,
+    ]);
+    expect(calls.every((c) => c.url.search === "")).toBe(true);
+  });
+
+  it("a customer's 360 view and a survey's responses", async () => {
+    const calls = record({ data: [], total: 0, limit: 50, offset: 0 });
+    await customersApi.get360(HOSTILE);
+    await surveysApi.getResponses(HOSTILE);
+    expect(calls.map((c) => c.url.pathname)).toEqual([
+      `/api/v1/customers/${ENCODED}/360`,
+      `/api/v1/surveys/${ENCODED}/responses`,
+    ]);
+  });
+
+  it("leaves a uuid as it is", async () => {
+    const calls = record({ id: ID });
+    await ticketsApi.get(ID);
+    expect(calls[0].url.pathname).toBe(`/api/v1/tickets/${ID}`);
   });
 });

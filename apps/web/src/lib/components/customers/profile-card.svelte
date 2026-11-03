@@ -10,6 +10,7 @@
   import * as Card from "#lib/components/ui/card/index.js";
   import type { Customer } from "#lib/types.js";
   import { formatDate } from "#lib/format.js";
+  import { mailtoHref, telHref } from "./contact-links.js";
 
   let { customer, onEdit }: { customer: Customer; onEdit: () => void } = $props();
 </script>
@@ -44,7 +45,7 @@
     <dl class="space-y-2 text-sm">
       <div class="flex items-center gap-2 text-muted-foreground">
         <Mail class="h-4 w-4 shrink-0" aria-hidden="true" />
-        <a href="mailto:{customer.email}" class="hover:text-foreground hover:underline">
+        <a href={mailtoHref(customer.email)} class="hover:text-foreground hover:underline">
           {customer.email}
         </a>
       </div>
@@ -52,7 +53,7 @@
       {#if customer.phone}
         <div class="flex items-center gap-2 text-muted-foreground">
           <Phone class="h-4 w-4 shrink-0" aria-hidden="true" />
-          <a href="tel:{customer.phone}" class="hover:text-foreground hover:underline">
+          <a href={telHref(customer.phone)} class="hover:text-foreground hover:underline">
             {customer.phone}
           </a>
         </div>

@@ -25,7 +25,7 @@ export const customersApi = {
     );
   },
 
-  get: (id: string) => apiFetch<Customer>(`/customers/${id}`),
+  get: (id: string) => apiFetch<Customer>(`/customers/${encodeURIComponent(id)}`),
 
   create: (data: {
     email: string;
@@ -49,16 +49,16 @@ export const customersApi = {
       tags?: string[];
     },
   ) =>
-    apiFetch<Customer>(`/customers/${id}`, {
+    apiFetch<Customer>(`/customers/${encodeURIComponent(id)}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiFetch<{ deleted: boolean }>(`/customers/${id}`, { method: "DELETE" }),
+    apiFetch<{ deleted: boolean }>(`/customers/${encodeURIComponent(id)}`, { method: "DELETE" }),
 
   search: (q: string) =>
     apiFetch<CappedPaginatedResponse<Customer>>(`/customers/search?q=${encodeURIComponent(q)}`),
 
-  get360: (id: string) => apiFetch<Customer360>(`/customers/${id}/360`),
+  get360: (id: string) => apiFetch<Customer360>(`/customers/${encodeURIComponent(id)}/360`),
 };

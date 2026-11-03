@@ -25,7 +25,7 @@ export const surveysApi = {
     );
   },
 
-  get: (id: string) => apiFetch<Survey>(`/surveys/${id}`),
+  get: (id: string) => apiFetch<Survey>(`/surveys/${encodeURIComponent(id)}`),
 
   create: (data: {
     title: string;
@@ -46,20 +46,20 @@ export const surveysApi = {
       active?: boolean;
     },
   ) =>
-    apiFetch<Survey>(`/surveys/${id}`, {
+    apiFetch<Survey>(`/surveys/${encodeURIComponent(id)}`, {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
   delete: (id: string) =>
-    apiFetch<{ deleted: boolean }>(`/surveys/${id}`, { method: "DELETE" }),
+    apiFetch<{ deleted: boolean }>(`/surveys/${encodeURIComponent(id)}`, { method: "DELETE" }),
 
   getResponses: (id: string, params?: { limit?: number; offset?: number }) => {
     const searchParams = new URLSearchParams();
     searchParams.set("limit", String(params?.limit ?? 50));
     searchParams.set("offset", String(params?.offset ?? 0));
     return apiFetch<PaginatedResponse<SurveyResponse>>(
-      `/surveys/${id}/responses?${searchParams.toString()}`,
+      `/surveys/${encodeURIComponent(id)}/responses?${searchParams.toString()}`,
     );
   },
 };
