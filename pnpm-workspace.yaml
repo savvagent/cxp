@@ -2,4 +2,3 @@ packages:
   - "sdk/typescript"
   - "packages/react"
   - "apps/web"
-  - "apps/console"

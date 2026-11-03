@@ -1552,7 +1552,7 @@ curl -fsS https://cxp.savvagent.com/readyz                        # unchanged: r
 
 ## Web console sign-in
 
-The console (`apps/web`, built into the image at `/srv/console`, the Dockerfile's
+The console (`apps/web`, a static SvelteKit build, built into the image at `/srv/console`, the Dockerfile's
 `CXP_CONSOLE_DIR`, and served under `/console/`; `/` is not the console's) signs people in with
 an OAuth authorization-code + PKCE flow against the platform, then keeps its own session cookie
 (`__Host-cxp_session`) over a platform token pair held server-side in `console_sessions`

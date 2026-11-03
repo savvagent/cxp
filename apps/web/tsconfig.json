@@ -1,24 +1,21 @@
 {
+  // Kit generates the base (paths, `$lib`, the route types) at `svelte-kit sync`.
+  // `include` covers `test/` too, so `svelte-check` in `pnpm build` type-checks
+  // the tests that read the build output.
+  "extends": "$app/tsconfig",
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "isolatedModules": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-    "jsx": "react-jsx",
-    "strict": true,
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "bundler",
     "noFallthroughCasesInSwitch": true,
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+    "types": ["$app/types", "node"]
   },
-  "include": ["src"]
+  "include": ["src", "test", "scripts", "*"],
+  "exclude": ["src/service-worker"]
 }

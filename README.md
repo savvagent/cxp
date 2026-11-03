@@ -104,7 +104,7 @@ The Rust tests run against a real Postgres (`#[sqlx::test]`), never mocks, and p
   See [SURVEYS.md](./sdk/typescript/SURVEYS.md) for the survey model.
 - **[@cxp/react](./packages/react)** (`packages/react`): React components and hooks on top of `@cxp/sdk`.
 - **`sdk/swift`, `sdk/kotlin`**: stubs, not built or tested in CI.
-- **`apps/web`**: the web app.
+- **`apps/web`**: the web console (`@cxp/web`), a static SvelteKit 3 app the server serves under `/console/`.
 
 ## Deployment
 

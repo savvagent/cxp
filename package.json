@@ -12,13 +12,6 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild"
-    ],
-    "packageExtensions": {
-      "@hookform/resolvers@3": {
-        "peerDependencies": {
-          "zod": "^3.24.0"
-        }
-      }
-    }
+    ]
   }
 }
