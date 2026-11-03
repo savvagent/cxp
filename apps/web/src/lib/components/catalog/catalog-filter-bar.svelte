@@ -10,7 +10,7 @@
   import { Button } from "#lib/components/ui/button/index.js";
   import * as Select from "#lib/components/ui/select/index.js";
   import { ALL, fromFilterSelect } from "#lib/forms.js";
-  import { createApplications, createComponents, createExperiences, createPages } from "#lib/queries/index.js";
+  import { applicationQueries, componentQueries, experienceQueries, pageQueries } from "#lib/queries/index.js";
   import { catalogFilterHref, pushUrl, searchOf } from "#lib/url-state.js";
 
   let {
@@ -26,10 +26,10 @@
     onChange?: (values: CatalogFilterValues) => void;
   } = $props();
 
-  const experiences = createExperiences(() => ({ limit: 200 }));
-  const applications = createApplications(() => ({ limit: 200 }));
-  const pages = createPages(() => ({ limit: 200 }));
-  const components = createComponents(() => ({ limit: 200 }));
+  const experiences = experienceQueries.list(() => ({ limit: 200 }));
+  const applications = applicationQueries.list(() => ({ limit: 200 }));
+  const pages = pageQueries.list(() => ({ limit: 200 }));
+  const components = componentQueries.list(() => ({ limit: 200 }));
 
   const value = $derived(catalogFiltersFromUrl(searchOf(page.url)));
   const hasFilters = $derived(!!(value.experienceId || value.applicationId || value.pageId || value.componentId));

@@ -1,15 +1,13 @@
 import { MutationObserver, QueryClient } from "@tanstack/svelte-query";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import * as applications from "./applications";
-import * as components from "./components";
+import { applicationQueries, componentQueries, experienceQueries, pageQueries } from "./catalog";
 import * as customers from "./customers";
-import * as experiences from "./experiences";
-import * as pages from "./pages";
 import * as surveys from "./surveys";
 import * as tickets from "./tickets";
 import { recordFetch } from "./test-fetch";
 
-// The seven catalog-style domains share one shape. The expected keys are
+// The seven catalog-style domains share one shape (the four catalog levels
+// are built by one factory, `catalogEntity`, and checked here each on its own). The expected keys are
 // written out literally (not computed from the factories) so a change to a
 // key, which would split the cache from what a mutation invalidates or from
 // another page's query, fails here.
@@ -47,29 +45,29 @@ type Domain = {
   listFilter: Record<string, string>;
 };
 
+/** A catalog level as the table below describes it. */
+function catalogDomain(
+  name: string,
+  q: typeof experienceQueries | typeof applicationQueries | typeof pageQueries | typeof componentQueries,
+  createInput: Record<string, unknown>,
+  listFilter: Record<string, string>,
+): Domain {
+  return {
+    name,
+    keys: q.keys,
+    listOptions: q.listOptions as Domain["listOptions"],
+    detailOptions: q.detailOptions,
+    create: q.createOptions,
+    update: q.updateOptions,
+    remove: q.deleteOptions,
+    createInput,
+    listFilter,
+  };
+}
+
 const domains: Domain[] = [
-  {
-    name: "applications",
-    keys: applications.applicationKeys,
-    listOptions: applications.applicationListOptions,
-    detailOptions: applications.applicationOptions,
-    create: applications.createApplicationMutationOptions,
-    update: applications.updateApplicationMutationOptions,
-    remove: applications.deleteApplicationMutationOptions,
-    createInput: { experienceId: ID, name: "a" },
-    listFilter: { experienceId: ID },
-  },
-  {
-    name: "components",
-    keys: components.componentKeys,
-    listOptions: components.componentListOptions,
-    detailOptions: components.componentOptions,
-    create: components.createComponentMutationOptions,
-    update: components.updateComponentMutationOptions,
-    remove: components.deleteComponentMutationOptions,
-    createInput: { pageId: ID, name: "c" },
-    listFilter: { pageId: ID },
-  },
+  catalogDomain("applications", applicationQueries, { experienceId: ID, name: "a" }, { experienceId: ID }),
+  catalogDomain("components", componentQueries, { pageId: ID, name: "c" }, { pageId: ID }),
   {
     name: "customers",
     keys: customers.customerKeys,
@@ -81,28 +79,8 @@ const domains: Domain[] = [
     createInput: { email: "ada@example.com" },
     listFilter: { experienceId: ID },
   },
-  {
-    name: "experiences",
-    keys: experiences.experienceKeys,
-    listOptions: experiences.experienceListOptions,
-    detailOptions: experiences.experienceOptions,
-    create: experiences.createExperienceMutationOptions,
-    update: experiences.updateExperienceMutationOptions,
-    remove: experiences.deleteExperienceMutationOptions,
-    createInput: { name: "e" },
-    listFilter: {},
-  },
-  {
-    name: "pages",
-    keys: pages.pageKeys,
-    listOptions: pages.pageListOptions,
-    detailOptions: pages.pageOptions,
-    create: pages.createPageMutationOptions,
-    update: pages.updatePageMutationOptions,
-    remove: pages.deletePageMutationOptions,
-    createInput: { applicationId: ID, name: "p" },
-    listFilter: { applicationId: ID },
-  },
+  catalogDomain("experiences", experienceQueries, { name: "e" }, {}),
+  catalogDomain("pages", pageQueries, { applicationId: ID, name: "p" }, { applicationId: ID }),
   {
     name: "surveys",
     keys: surveys.surveyKeys,

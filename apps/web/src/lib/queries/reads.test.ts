@@ -117,21 +117,26 @@ describe("survey responses", () => {
 describe("the index", () => {
   it("exports a create… wrapper for every React hook", () => {
     const replaced = [
-      "createApplications", "createApplication", "createCreateApplication", "createUpdateApplication", "createDeleteApplication",
-      "createComponents", "createComponent", "createCreateComponent", "createUpdateComponent", "createDeleteComponent",
       "createCustomers", "createCustomer", "createCreateCustomer", "createUpdateCustomer", "createDeleteCustomer",
       "createCustomer360", "createCustomerSearch",
       "createDashboardMetrics",
-      "createExperiences", "createExperience", "createCreateExperience", "createUpdateExperience", "createDeleteExperience",
       "createFeedback",
       "createMyTeams",
-      "createPages", "createPage", "createCreatePage", "createUpdatePage", "createDeletePage",
       "createSession",
       "createSurveys", "createSurvey", "createSurveyResponses", "createCreateSurvey", "createUpdateSurvey", "createDeleteSurvey",
       "createTickets", "createTicket", "createCreateTicket", "createUpdateTicket", "createDeleteTicket",
     ];
     for (const name of replaced) {
       expect(typeof (queries as Record<string, unknown>)[name], name).toBe("function");
+    }
+  });
+
+  it("exports the catalog levels' list, record and mutation wrappers", () => {
+    for (const entity of ["experienceQueries", "applicationQueries", "pageQueries", "componentQueries"]) {
+      const q = (queries as unknown as Record<string, Record<string, unknown>>)[entity];
+      for (const name of ["list", "one", "create", "update", "remove"]) {
+        expect(typeof q?.[name], `${entity}.${name}`).toBe("function");
+      }
     }
   });
 });
