@@ -1,0 +1,21 @@
+{
+  // Kit generates the base (paths, `$lib`, the route types) at `svelte-kit sync`.
+  // `include` covers `test/` too, so `svelte-check` in `pnpm build` type-checks
+  // the tests that read the build output.
+  "extends": "$app/tsconfig",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "strict": true,
+    "moduleResolution": "bundler",
+    "noFallthroughCasesInSwitch": true,
+    "types": ["$app/types", "node"]
+  },
+  "include": ["src", "test", "scripts", "*"],
+  "exclude": ["src/service-worker"]
+}
