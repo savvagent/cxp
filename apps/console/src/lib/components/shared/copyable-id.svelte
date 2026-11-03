@@ -32,6 +32,7 @@
   <Tooltip.Root>
     <Tooltip.Trigger
       onclick={handleCopy}
+      aria-label={`Copy ${value}`}
       class="inline-flex cursor-pointer items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-foreground"
     >
       {shortId(value)}
