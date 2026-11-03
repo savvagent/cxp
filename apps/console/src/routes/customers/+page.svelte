@@ -9,12 +9,8 @@
   import { goto } from "$app/navigation";
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
-  import {
-    catalogFiltersFromUrl,
-    withCatalogFilters,
-    type CatalogFilterValues,
-  } from "#lib/catalog-filters.js";
-  import CustomerCatalogFilters from "#lib/components/customers/customer-catalog-filters.svelte";
+  import { catalogFiltersFromUrl } from "#lib/catalog-filters.js";
+  import CatalogFilterBar from "#lib/components/catalog/catalog-filter-bar.svelte";
   import CustomerRowActions from "#lib/components/customers/customer-row-actions.svelte";
   import {
     PAGE_SIZE,
@@ -38,15 +34,6 @@
   let offset = $state(0);
 
   const catalogFilters = $derived(catalogFiltersFromUrl(new URLSearchParams(page.url.search)));
-
-  function handleCatalogChange(values: CatalogFilterValues) {
-    const url = new URL(page.url.href);
-    url.search = withCatalogFilters(url.searchParams, values).toString();
-    // A new history entry, as react-router's `setSearchParams`; focus and
-    // scroll stay where they are.
-    void goto(url, { reset: false });
-    offset = 0;
-  }
 
   const customersQuery = createCustomers(() => ({
     limit: PAGE_SIZE,
@@ -72,7 +59,8 @@
   />
 
   <!-- Catalog filters -->
-  <CustomerCatalogFilters value={catalogFilters} onChange={handleCatalogChange} />
+  <!-- The bar writes the filters to the URL itself; a change returns to the first page. -->
+  <CatalogFilterBar onChange={() => (offset = 0)} />
 
   <!-- Search -->
   <div class="relative max-w-sm">

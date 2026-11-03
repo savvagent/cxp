@@ -11,7 +11,6 @@
   import TicketIcon from "@lucide/svelte/icons/ticket";
   import Trash2 from "@lucide/svelte/icons/trash-2";
   import { toast } from "svelte-sonner";
-  import { withCatalogFilters, type CatalogFilterValues } from "#lib/catalog-filters.js";
   import ConfirmDialog from "#lib/components/shared/confirm-dialog.svelte";
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
@@ -19,7 +18,7 @@
   import PriorityBadge from "#lib/components/shared/priority-badge.svelte";
   import StatusBadge from "#lib/components/shared/status-badge.svelte";
   import CreateTicketDialog from "#lib/components/tickets/create-ticket-dialog.svelte";
-  import TicketCatalogFilters from "#lib/components/tickets/ticket-catalog-filters.svelte";
+  import CatalogFilterBar from "#lib/components/catalog/catalog-filter-bar.svelte";
   import {
     ALL,
     PRIORITY_OPTIONS,
@@ -66,12 +65,6 @@
 
   function setFilter(key: "status" | "priority", value: string) {
     setSearchParams(withTicketFilter(currentParams(), key, value));
-  }
-
-  function setCatalogFilters(values: CatalogFilterValues) {
-    const next = withCatalogFilters(currentParams(), values);
-    next.delete("page");
-    setSearchParams(next);
   }
 
   function clearFilters() {
@@ -160,7 +153,8 @@
     {/if}
   </div>
 
-  <TicketCatalogFilters value={listState.catalog} onChange={setCatalogFilters} />
+  <!-- The bar writes the catalog filters to the URL itself; a change returns to the first page. -->
+  <CatalogFilterBar resetParams={["page"]} />
 
   {#if tickets.isLoading}
     <LoadingTable rows={8} />
