@@ -3,11 +3,11 @@
   // service worker. The shell (navigation, sign-in) is built on top of this.
   import "../app.css";
   import { QueryClientProvider } from "@tanstack/svelte-query";
-  import { onMount } from "svelte";
+  import { onMount, type Snippet } from "svelte";
   import { Toaster } from "svelte-sonner";
   import { queryClient } from "#lib/query-client.js";
 
-  let { children } = $props();
+  let { children }: { children: Snippet } = $props();
 
   onMount(() => {
     // Registered from a bundled module, never an inline script: the server's

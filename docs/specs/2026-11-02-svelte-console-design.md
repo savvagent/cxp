@@ -64,6 +64,9 @@ then built on the Svelte stack.
   shadcn/Radix → shadcn-svelte (bits-ui), regenerated; recharts → LayerChart (shadcn-svelte
   `chart`); cmdk → shadcn-svelte `command`; lucide-react → `@lucide/svelte`; sonner →
   `svelte-sonner`; vite-plugin-pwa → `@vite-pwa/sveltekit`.
+- **`#lib`, not `$lib`.** Kit 3 removed `$lib`; `package.json` `imports` maps `#lib/*` to
+  `./src/lib/*`, so imports carry an extension (`#lib/query-client.js`). shadcn-svelte's
+  `components.json` aliases use `#lib/...` too.
 - **Framework-free code** in `src/lib` (`api/*`, `api-client`, `api-error`, `types`, `session`)
   carries over with its tests. Logic the old tests imported from `.tsx` files moves to `.ts`
   modules (`catalog-filters.ts`, `surveys.ts`).
