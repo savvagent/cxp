@@ -8,7 +8,7 @@
   import RootLayout from "#lib/components/layout/root-layout.svelte";
   import { Toaster } from "#lib/components/ui/sonner/index.js";
   import { resolveAtBoot } from "@savvagent/console-ui";
-  import { assertIsLocale, overwriteGetLocale } from "#lib/paraglide/runtime.js";
+  import { overwriteGetLocale } from "#lib/paraglide/runtime.js";
   import { queryClient } from "#lib/query-client.js";
 
   // The language, decided before anything renders, by the shared shell: the
@@ -17,11 +17,10 @@
   // in `+layout.ts`, so it runs once, synchronously, ahead of the first paint,
   // with no inline script (the server's CSP is `script-src 'self'`).
   //
-  // The shell types a runtime's getter as `() => string`; Paraglide's generated
-  // runtime narrows it to CXP's locales. The shell only installs one of the six
-  // locales both ship, so `assertIsLocale` checks that narrowing rather than
-  // casting it.
-  resolveAtBoot((get) => overwriteGetLocale(() => assertIsLocale(get())));
+  // The shell's getter returns its own `Locale`, which type-checks against
+  // CXP's generated `overwriteGetLocale` only while CXP ships every locale the
+  // shell does (`shell-locales.test.ts` checks they are the same six).
+  resolveAtBoot(overwriteGetLocale);
 
   let { children }: { children: Snippet } = $props();
 
