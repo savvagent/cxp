@@ -118,7 +118,7 @@ pub fn router(
         state = state.with_console(console.clone());
     }
     let api = cxp_api::router(state);
-    let assets = ConsoleAssets::find(&config.console_dir);
+    let assets = ConsoleAssets::find(&config.console_dir, console_csp_for(&config.platform_url)?);
     let hsts = config.public_url.starts_with("https://");
     // Rendered once: a bad platform URL fails boot, not a request.
     let page = InstallPage::new(&config.resource_uri, &config.platform_url)?;
@@ -251,13 +251,34 @@ fn console(db: Db, platform: Arc<PlatformClient>, config: &Config) -> Result<Opt
 /// Where the built console is served: `/console/`, never `/`.
 const CONSOLE_PREFIX: &str = "/console";
 
-/// The console's `Content-Security-Policy`. Scripts, connections, and frames
-/// are this origin's only. `style-src` allows inline styles because the
+/// The console's `Content-Security-Policy`. Scripts and frames are this
+/// origin's only. Connections are this origin's and the platform's: the
+/// shared console shell (`@savvagent/console-ui`, #82) loads the platform's
+/// service list (`/services/v1.json`) for its service switcher, and nothing
+/// else leaves the origin. `style-src` allows inline styles because the
 /// console's toast and dialog libraries inject `<style>` elements at runtime;
 /// no inline script is allowed.
-const CONSOLE_CSP: &str = "default-src 'self'; script-src 'self'; connect-src 'self'; \
-                           style-src 'self' 'unsafe-inline'; object-src 'none'; \
-                           base-uri 'none'; form-action 'self'; frame-ancestors 'none'";
+fn console_csp(platform_origin: &str) -> String {
+    format!(
+        "default-src 'self'; script-src 'self'; connect-src 'self' {platform_origin}; \
+         style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; \
+         form-action 'self'; frame-ancestors 'none'"
+    )
+}
+
+/// [`console_csp`] for `CXP_PLATFORM_URL`, reduced to its origin (the config
+/// already requires https, or http on loopback). Built once at boot, so a URL
+/// that has no origin fails boot rather than a request.
+fn console_csp_for(platform_url: &str) -> Result<HeaderValue> {
+    let origin = url::Url::parse(platform_url)
+        .map_err(|e| anyhow!("CXP_PLATFORM_URL is not a URL: {e}"))?
+        .origin();
+    if !origin.is_tuple() {
+        return Err(anyhow!("CXP_PLATFORM_URL has no origin"));
+    }
+    HeaderValue::from_str(&console_csp(&origin.ascii_serialization()))
+        .map_err(|_| anyhow!("CXP_PLATFORM_URL makes an invalid Content-Security-Policy"))
+}
 
 /// `Strict-Transport-Security` on every response when the public URL is
 /// `https`: the session cookie must never travel over plain http.
@@ -268,12 +289,14 @@ const HSTS: &str = "max-age=31536000";
 struct ConsoleAssets {
     files: ServeDir,
     index: ServeFile,
+    /// [`console_csp_for`] the configured platform.
+    csp: HeaderValue,
 }
 
 impl ConsoleAssets {
     /// The console in `dir`, or `None` (logged) when there is no
     /// `index.html` there to serve.
-    fn find(dir: &Path) -> Option<Self> {
+    fn find(dir: &Path, csp: HeaderValue) -> Option<Self> {
         let index = dir.join("index.html");
         if !index.is_file() {
             tracing::warn!(dir = %dir.display(),
@@ -284,6 +307,7 @@ impl ConsoleAssets {
             // A directory is never listed or redirected to: only files.
             files: ServeDir::new(dir).append_index_html_on_directories(false),
             index: ServeFile::new(index),
+            csp,
         })
     }
 }
@@ -408,10 +432,7 @@ async fn console_or_not_found(assets: Option<ConsoleAssets>, req: Request) -> Re
     headers.insert(header::CACHE_CONTROL, HeaderValue::from_static(cache));
     // The console acts with an ambient session cookie: never inside a frame.
     headers.insert(header::X_FRAME_OPTIONS, HeaderValue::from_static("DENY"));
-    headers.insert(
-        header::CONTENT_SECURITY_POLICY,
-        HeaderValue::from_static(CONSOLE_CSP),
-    );
+    headers.insert(header::CONTENT_SECURITY_POLICY, assets.csp.clone());
     headers.insert(
         header::REFERRER_POLICY,
         HeaderValue::from_static("same-origin"),
@@ -974,6 +995,25 @@ mod tests {
 
     const NAVIGATION: &str = "text/html,application/xhtml+xml,*/*;q=0.8";
 
+    #[test]
+    fn the_console_may_connect_to_the_platform_origin_only() {
+        for (url, origin) in [
+            ("https://savvagent.com", "https://savvagent.com"),
+            ("https://savvagent.com/x/", "https://savvagent.com"),
+            ("https://savvagent.com:8443/", "https://savvagent.com:8443"),
+            ("http://127.0.0.1:3000", "http://127.0.0.1:3000"),
+        ] {
+            let csp = console_csp_for(url).unwrap();
+            let csp = csp.to_str().unwrap();
+            assert!(
+                csp.contains(&format!("connect-src 'self' {origin};")),
+                "{url}: {csp}"
+            );
+            assert!(csp.contains("script-src 'self';"), "{csp}");
+        }
+        assert!(console_csp_for("not a url").is_err());
+    }
+
     #[tokio::test]
     async fn the_built_console_is_served_under_console_with_an_index_fallback() {
         let dir = console_dir();
@@ -997,21 +1037,29 @@ mod tests {
             assert!(body.contains("<title>CXP</title>"), "{path}: {body}");
             assert_eq!(headers["cache-control"], "no-cache", "{path}");
             assert_eq!(headers["x-frame-options"], "DENY", "{path}");
-            assert_eq!(headers["content-security-policy"], CONSOLE_CSP, "{path}");
+            assert_eq!(
+                headers["content-security-policy"],
+                "default-src 'self'; script-src 'self'; \
+                 connect-src 'self' https://platform.example.com; \
+                 style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; \
+                 form-action 'self'; frame-ancestors 'none'",
+                "{path}"
+            );
             assert_eq!(headers["strict-transport-security"], HSTS, "{path}");
         }
+        let csp = console_csp("https://platform.example.com");
         for directive in [
             "default-src 'self'",
-            "script-src 'self'",
-            "connect-src 'self'",
+            "script-src 'self';",
+            "connect-src 'self' https://platform.example.com;",
             "object-src 'none'",
             "base-uri 'none'",
             "form-action 'self'",
             "frame-ancestors 'none'",
         ] {
-            assert!(CONSOLE_CSP.contains(directive), "{directive}");
+            assert!(csp.contains(directive), "{directive}");
         }
-        assert!(!CONSOLE_CSP.contains("script-src 'self' 'unsafe"));
+        assert!(!csp.contains("script-src 'self' 'unsafe"));
         // /console itself: to /console/, the query kept.
         let (status, headers, _) = get_with(app.clone(), "/console", Some(NAVIGATION)).await;
         assert_eq!(status, StatusCode::PERMANENT_REDIRECT);
