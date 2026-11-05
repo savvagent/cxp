@@ -22,7 +22,6 @@
   let { children }: { children: Snippet } = $props();
 
   const session = createSession();
-  const shellSession = $derived(session.data?.signedIn ? toConsoleSession(session.data) : undefined);
   const title = $derived(routeTitle(page.url.pathname));
 
   // The account's language, once the session carries it. The server does not
@@ -52,9 +51,10 @@
       {m.common_try_again()}
     </Button>
   </div>
-{:else if !session.data.signedIn || !shellSession}
-  <SignIn loginEnabled={session.data.loginEnabled} platformUrl={session.data.signedIn ? undefined : session.data.platformUrl} />
+{:else if !session.data.signedIn}
+  <SignIn loginEnabled={session.data.loginEnabled} platformUrl={session.data.platformUrl} />
 {:else}
+  {@const shellSession = toConsoleSession(session.data)}
   <div class="flex h-screen flex-col overflow-hidden">
     <ConsoleHeader session={shellSession} service="cxp" onSignOut={signOut}>
       {#snippet nav()}

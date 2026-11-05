@@ -1007,7 +1007,7 @@ fly secrets list -a otto-cxp
 #     flyctl looks an image up inside the app named by -a, so the deploy job copies
 #     registry.fly.io/otto-cxp:sha-<sha> to registry.fly.io/otto-cxp-migrate:sha-<sha>
 #     (scripts/deploy/copy-image.sh) before migrating. Check it by hand with a throwaway
-#     image: push one (`fly deploy -a otto-cxp --build-only --push --image-label m6`), copy it,
+#     image: push one (the `fly deploy … --image-label m6` below), copy it,
 #     then start it here with an argument cxp-server rejects before it touches anything (no
 #     database, no migration). It must start and exit 1.
 fly deploy -a otto-cxp --build-only --push --remote-only --image-label m6 \
@@ -1105,8 +1105,8 @@ proxy 15499:5432 -a otto-db` in a second terminal: `psql
 BEGIN; SET LOCAL ROLE cxp_app; SELECT current_user; ROLLBACK;   -- cxp_app
 ```
 
-**Then merge the PR for #28** (with `FLY_DEPLOY` enabled the merge deploys; otherwise `fly deploy
--a otto-cxp --remote-only --build-secret NODE_AUTH_TOKEN="$(gh auth token)"`). The deploy job's migration step applies 0008 as `cxp_owner`. If T1 was skipped
+**Then merge the PR for #28** (with `FLY_DEPLOY` enabled the merge deploys; otherwise
+`fly deploy -a otto-cxp --remote-only --build-secret NODE_AUTH_TOKEN="$(gh auth token)"`). The deploy job's migration step applies 0008 as `cxp_owner`. If T1 was skipped
 it fails with `role cxp_app does not exist and cxp_owner may not create it`, nothing is recorded,
 and the old release keeps serving: run T1, then deploy again.
 
@@ -1743,7 +1743,9 @@ A hand deploy does the same steps, because `fly deploy` alone no longer migrates
 tokens are your own; nothing here needs the CI ones). Every image build needs
 `--build-secret NODE_AUTH_TOKEN=…`, a token that can read `@savvagent` packages on GitHub
 Packages: the console installs `@savvagent/console-ui` from there, and the Dockerfile takes the
-token as a build secret so it lands in no layer (the deploy job passes its `GITHUB_TOKEN`):
+token as a build secret so it lands in no layer (the deploy job passes its `GITHUB_TOKEN`, which
+reads the package because the package grants this repo Read access in its Actions settings, a
+one-time grant by an org admin):
 
 ```bash
 SHA=$(git rev-parse HEAD)

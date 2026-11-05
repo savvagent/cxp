@@ -81,6 +81,14 @@ describe("api calls carry the session cookie", () => {
     });
   });
 
+  it("a 401 with sign-in off leaves no platform to show", async () => {
+    browserAt("/console/tickets");
+    queryClient.setQueryData(sessionKeys.all, { signedIn: false, loginEnabled: false });
+    respond(401, { error: "unauthenticated" });
+    await expect(apiFetch("/tickets")).rejects.toMatchObject({ status: 401 });
+    expect(queryClient.getQueryData(sessionKeys.all)).toEqual({ signedIn: false, loginEnabled: false });
+  });
+
   it("a 401 with no session known asks the server again", async () => {
     browserAt("/console/tickets");
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");
