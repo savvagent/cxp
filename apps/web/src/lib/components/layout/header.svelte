@@ -5,7 +5,7 @@
   import Menu from "@lucide/svelte/icons/menu";
   import Search from "@lucide/svelte/icons/search";
   import { page } from "$app/state";
-  import { Button } from "#lib/components/ui/button/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
   import { signOut } from "#lib/session.js";
   import { routeTitle } from "./nav.js";
 

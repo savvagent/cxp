@@ -7,8 +7,8 @@
   import MessageSquare from "@lucide/svelte/icons/message-square";
   import Ticket from "@lucide/svelte/icons/ticket";
   import Users from "@lucide/svelte/icons/users";
-  import * as Card from "#lib/components/ui/card/index.js";
-  import { Skeleton } from "#lib/components/ui/skeleton/index.js";
+  import * as Card from "@savvagent/console-ui/ui/card";
+  import { Skeleton } from "@savvagent/console-ui/ui/skeleton";
   import { formatNumber } from "#lib/format.js";
   import { createDashboardMetrics } from "#lib/queries/index.js";
 

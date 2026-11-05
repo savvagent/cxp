@@ -21,13 +21,13 @@
     ticketFieldUpdate,
     type TicketField,
   } from "#lib/components/tickets/tickets.js";
-  import { Badge } from "#lib/components/ui/badge/index.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Card from "#lib/components/ui/card/index.js";
-  import { Input } from "#lib/components/ui/input/index.js";
-  import { Label } from "#lib/components/ui/label/index.js";
-  import * as Select from "#lib/components/ui/select/index.js";
-  import { Separator } from "#lib/components/ui/separator/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Card from "@savvagent/console-ui/ui/card";
+  import { Input } from "@savvagent/console-ui/ui/input";
+  import { Label } from "@savvagent/console-ui/ui/label";
+  import * as Select from "@savvagent/console-ui/ui/select";
+  import { Separator } from "@savvagent/console-ui/ui/separator";
   import { formatLocaleDateTime } from "#lib/format.js";
   import { createTicket, createUpdateTicket } from "#lib/queries/index.js";
 

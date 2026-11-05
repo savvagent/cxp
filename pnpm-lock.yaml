@@ -10,12 +10,12 @@ importers:
 
   apps/web:
     dependencies:
-      '@internationalized/date':
-        specifier: ^3.12.4
-        version: 3.12.4
       '@lucide/svelte':
-        specifier: ^1.66.0
-        version: 1.66.0(svelte@5.57.3)
+        specifier: ^1.69.0
+        version: 1.69.0(svelte@5.57.3)
+      '@savvagent/console-ui':
+        specifier: 0.2.0
+        version: 0.2.0(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(tailwindcss@4.3.4)
       '@tanstack/svelte-query':
         specifier: ^6.3.9
         version: 6.3.9(svelte@5.57.3)
@@ -25,24 +25,9 @@ importers:
       '@vite-pwa/workbox-window':
         specifier: ^8.0.13
         version: 8.0.13
-      bits-ui:
-        specifier: ^2.20.3
-        version: 2.20.3(@internationalized/date@3.12.4)(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
       svelte-sonner:
         specifier: ^1.2.3
         version: 1.2.3(svelte@5.57.3)
-      tailwind-merge:
-        specifier: ^3.7.0
-        version: 3.7.0
-      tailwind-variants:
-        specifier: ^3.3.1
-        version: 3.3.1(tailwind-merge@3.7.0)(tailwindcss@4.3.4)
-      tw-animate-css:
-        specifier: ^1.4.0
-        version: 1.4.0
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -735,8 +720,8 @@ packages:
   '@lix-js/sdk@0.19.0':
     resolution: {integrity: sha512-ks7hKZdJGH0APlSLWtFYCXDO3yIoleoPqzLgkZYtMbaiWRN2Ih772tNGGBZFLKbutq6DuNRwcjNkG94KqWRbBA==}
 
-  '@lucide/svelte@1.66.0':
-    resolution: {integrity: sha512-G2qFyutQpgk9TY0QYgqXk9rQtUt8p509mFpQzmTpyc894hfRSFhGNcGAVAUgB8znAyVsp5WTF/2vmCwprnNQ/w==}
+  '@lucide/svelte@1.69.0':
+    resolution: {integrity: sha512-Q61KvD5/lGS+BrbpPXJSBt/zgjDEAWOP8X85tBz6OnYueEyVuDxI0Zh/6R4cjobWRxs3ItY2JD4NSwYprBpHHw==}
     peerDependencies:
       svelte: ^5
 
@@ -1102,6 +1087,12 @@ packages:
     resolution: {integrity: sha512-mxRFDdHIWRxg3UfIIAwCm6NzvxG0jDX/wBN6KsQFTvKFqqg9vTrWUE68qEjHt19A5wwx5X5aUi2zuZT7YR0jrA==}
     cpu: [x64]
     os: [win32]
+
+  '@savvagent/console-ui@0.2.0':
+    resolution: {integrity: sha512-xxevVIv5scxEeOX6hsEvbfbHa1GUw0mVgFpowc1wZSyOsbV3csAmi6d0gSIAV/NHfgu0A7vy9sInV8EJCqA1mA==, tarball: https://npm.pkg.github.com/download/@savvagent/console-ui/0.2.0/d0e943af47a396679854c40b4e841c2c9b7d448c}
+    peerDependencies:
+      svelte: ^5.57.3
+      tailwindcss: ^4.3.4
 
   '@sinclair/typebox@0.31.30':
     resolution: {integrity: sha512-MGsM7bVmHg3sUKCphlu3SGQ+T+5JTbygZWYArfKQCW5anJeACHeqLhcnf+R7XlCWZ+QR3C8JTBx3kCKJTN69ow==}
@@ -1499,8 +1490,8 @@ packages:
     resolution: {integrity: sha512-XDrb+zql0RbFPKgj7MuH9zOc78R3Fa/P/VSGnnpdwYsvNZPWjcMYMdAkKCOQEL2A7yqgjSMTDRFp6gfSDW+/QQ==}
     hasBin: true
 
-  bits-ui@2.20.3:
-    resolution: {integrity: sha512-KwcmD/DQwzUKk6zxiYhNfBQgYlBCqmUIwHkbeTOEYb+vbx2ZQ3VkbPgnVIXh6RBmS3OqUQOObfP4yZrJCWPLMg==}
+  bits-ui@2.20.6:
+    resolution: {integrity: sha512-V4fgaFAtw+d8xS+3SBuLqouDsAo06991oJnW3hdEx0O1O/sl+BGLKKdZ0i4ZI1mgqT0JXJJ+6avI750OkvgZrA==}
     engines: {node: '>=20'}
     peerDependencies:
       '@internationalized/date': ^3.8.1
@@ -2406,8 +2397,8 @@ packages:
     peerDependencies:
       svelte: ^5.0.0
 
-  svelte-toolbelt@0.10.6:
-    resolution: {integrity: sha512-YWuX+RE+CnWYx09yseAe4ZVMM7e7GRFZM6OYWpBKOb++s+SQ8RBIMMe+Bs/CznBMc0QPLjr+vDBxTAkozXsFXQ==}
+  svelte-toolbelt@0.10.7:
+    resolution: {integrity: sha512-gjuUVEEpo38UJCeI1ssE3NxG31tYENczPTcTGTXf4338qAQNdR9I1oAEbQY0KQFmbdUojNIhHuRNix7ThwFNxQ==}
     engines: {node: '>=18', pnpm: '>=8.7.0'}
     peerDependencies:
       svelte: ^5.30.2
@@ -3302,7 +3293,7 @@ snapshots:
       binaryen: 130.0.0
       fflate: 0.8.3
 
-  '@lucide/svelte@1.66.0(svelte@5.57.3)':
+  '@lucide/svelte@1.69.0(svelte@5.57.3)':
     dependencies:
       svelte: 5.57.3
 
@@ -3526,6 +3517,20 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.57.1':
     optional: true
+
+  '@savvagent/console-ui@0.2.0(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(tailwindcss@4.3.4)':
+    dependencies:
+      '@internationalized/date': 3.12.4
+      '@lucide/svelte': 1.69.0(svelte@5.57.3)
+      bits-ui: 2.20.6(@internationalized/date@3.12.4)(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)
+      clsx: 2.1.1
+      svelte: 5.57.3
+      tailwind-merge: 3.7.0
+      tailwind-variants: 3.3.1(tailwind-merge@3.7.0)(tailwindcss@4.3.4)
+      tailwindcss: 4.3.4
+      tw-animate-css: 1.4.0
+    transitivePeerDependencies:
+      - '@sveltejs/kit'
 
   '@sinclair/typebox@0.31.30': {}
 
@@ -3903,7 +3908,7 @@ snapshots:
 
   binaryen@130.0.0: {}
 
-  bits-ui@2.20.3(@internationalized/date@3.12.4)(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3):
+  bits-ui@2.20.6(@internationalized/date@3.12.4)(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3):
     dependencies:
       '@floating-ui/core': 1.8.0
       '@floating-ui/dom': 1.8.0
@@ -3911,7 +3916,7 @@ snapshots:
       esm-env: 1.2.2
       runed: 0.35.1(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)
       svelte: 5.57.3
-      svelte-toolbelt: 0.10.6(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)
+      svelte-toolbelt: 0.10.7(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)
       tabbable: 6.5.1
     transitivePeerDependencies:
       - '@sveltejs/kit'
@@ -4852,7 +4857,7 @@ snapshots:
     dependencies:
       svelte: 5.57.3
 
-  svelte-toolbelt@0.10.6(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3):
+  svelte-toolbelt@0.10.7(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3):
     dependencies:
       clsx: 2.1.1
       runed: 0.35.1(@sveltejs/kit@3.1.1(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)(typescript@6.0.3)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.27.3)(jiti@2.7.0)(terser@5.46.0)))(svelte@5.57.3)

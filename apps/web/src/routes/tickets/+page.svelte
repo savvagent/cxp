@@ -37,9 +37,9 @@
     withPage,
     withTicketFilter,
   } from "#lib/components/tickets/tickets.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Select from "#lib/components/ui/select/index.js";
-  import * as Table from "#lib/components/ui/table/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Select from "@savvagent/console-ui/ui/select";
+  import * as Table from "@savvagent/console-ui/ui/table";
   import { createDeleteTicket, createTickets } from "#lib/queries/index.js";
   import type { Ticket } from "#lib/types.js";
 

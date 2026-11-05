@@ -6,11 +6,11 @@
   import { m } from "#lib/paraglide/messages.js";
   import { toast } from "svelte-sonner";
   import { toastError } from "#lib/errors.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Dialog from "#lib/components/ui/dialog/index.js";
-  import { Input } from "#lib/components/ui/input/index.js";
-  import { Label } from "#lib/components/ui/label/index.js";
-  import { Textarea } from "#lib/components/ui/textarea/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Dialog from "@savvagent/console-ui/ui/dialog";
+  import { Input } from "@savvagent/console-ui/ui/input";
+  import { Label } from "@savvagent/console-ui/ui/label";
+  import { Textarea } from "@savvagent/console-ui/ui/textarea";
   import { validate } from "#lib/forms.js";
   import { createCreateSurvey } from "#lib/queries/index.js";
   import {

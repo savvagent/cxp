@@ -1,6 +1,6 @@
 <script lang="ts">
   import Plus from "@lucide/svelte/icons/plus";
-  import { Button } from "#lib/components/ui/button/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
 
   let {
     title,

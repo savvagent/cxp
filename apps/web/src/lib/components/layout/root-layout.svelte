@@ -5,8 +5,8 @@
   import type { Snippet } from "svelte";
   import SignIn from "#lib/components/auth/sign-in.svelte";
   import CommandPalette from "#lib/components/command-palette.svelte";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import { Skeleton } from "#lib/components/ui/skeleton/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import { Skeleton } from "@savvagent/console-ui/ui/skeleton";
   import { createSession } from "#lib/queries/index.js";
   import Header from "./header.svelte";
   import MobileNav from "./mobile-nav.svelte";

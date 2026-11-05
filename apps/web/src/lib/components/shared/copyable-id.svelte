@@ -4,7 +4,7 @@
   import Copy from "@lucide/svelte/icons/copy";
   import { onDestroy } from "svelte";
   import { toast } from "svelte-sonner";
-  import * as Tooltip from "#lib/components/ui/tooltip/index.js";
+  import * as Tooltip from "@savvagent/console-ui/ui/tooltip";
   import { copyValue, shortId } from "./copy.js";
 
   /** Shows an id's first eight characters; a click copies the whole id. */

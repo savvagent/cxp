@@ -6,9 +6,9 @@
   import Pencil from "@lucide/svelte/icons/pencil";
   import Phone from "@lucide/svelte/icons/phone";
   import UserCircle2 from "@lucide/svelte/icons/circle-user-round";
-  import { Badge } from "#lib/components/ui/badge/index.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Card from "#lib/components/ui/card/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Card from "@savvagent/console-ui/ui/card";
   import type { Customer } from "#lib/types.js";
   import { formatDate } from "#lib/format.js";
   import { mailtoHref, telHref } from "./contact-links.js";

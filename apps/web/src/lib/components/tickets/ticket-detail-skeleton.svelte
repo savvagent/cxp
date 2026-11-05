@@ -1,8 +1,8 @@
 <script lang="ts">
   // The ticket detail page while its ticket loads (the old TicketDetailSkeleton).
   import { m } from "#lib/paraglide/messages.js";
-  import * as Card from "#lib/components/ui/card/index.js";
-  import { Skeleton } from "#lib/components/ui/skeleton/index.js";
+  import * as Card from "@savvagent/console-ui/ui/card";
+  import { Skeleton } from "@savvagent/console-ui/ui/skeleton";
 </script>
 
 <div class="space-y-6" aria-busy="true" aria-label={m.ticket_loading()}>

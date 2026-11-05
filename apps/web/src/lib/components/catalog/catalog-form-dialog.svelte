@@ -5,12 +5,12 @@
   // text field, and Description, validated with the level's zod schema.
   import { m } from "#lib/paraglide/messages.js";
   import type { z } from "#lib/zod.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Dialog from "#lib/components/ui/dialog/index.js";
-  import { Input } from "#lib/components/ui/input/index.js";
-  import { Label } from "#lib/components/ui/label/index.js";
-  import * as Select from "#lib/components/ui/select/index.js";
-  import { Textarea } from "#lib/components/ui/textarea/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Dialog from "@savvagent/console-ui/ui/dialog";
+  import { Input } from "@savvagent/console-ui/ui/input";
+  import { Label } from "@savvagent/console-ui/ui/label";
+  import * as Select from "@savvagent/console-ui/ui/select";
+  import { Textarea } from "@savvagent/console-ui/ui/textarea";
   import type { MyTeam } from "#lib/types.js";
   import { NONE, fromOptionalSelect, validate, type FieldErrors } from "#lib/forms.js";
   import type { FormValues } from "./forms.js";

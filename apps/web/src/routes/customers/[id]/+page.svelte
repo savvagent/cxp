@@ -13,9 +13,9 @@
   import ProfileSkeleton from "#lib/components/customers/profile-skeleton.svelte";
   import TicketsTab from "#lib/components/customers/tickets-tab.svelte";
   import EmptyState from "#lib/components/shared/empty-state.svelte";
-  import { Badge } from "#lib/components/ui/badge/index.js";
-  import { Skeleton } from "#lib/components/ui/skeleton/index.js";
-  import * as Tabs from "#lib/components/ui/tabs/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
+  import { Skeleton } from "@savvagent/console-ui/ui/skeleton";
+  import * as Tabs from "@savvagent/console-ui/ui/tabs";
   import { formatNumber } from "#lib/format.js";
   import { createCustomer, createCustomer360 } from "#lib/queries/index.js";
 

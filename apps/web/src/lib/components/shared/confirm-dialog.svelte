@@ -1,7 +1,7 @@
 <script lang="ts">
   import { m } from "#lib/paraglide/messages.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Dialog from "#lib/components/ui/dialog/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Dialog from "@savvagent/console-ui/ui/dialog";
 
   let {
     open = $bindable(false),

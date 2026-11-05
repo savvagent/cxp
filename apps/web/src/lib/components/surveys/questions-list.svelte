@@ -2,7 +2,7 @@
   // A survey's questions, numbered, each with its type badge (the React
   // detail page's `QuestionsList`). Question text is customer data: text only.
   import { m } from "#lib/paraglide/messages.js";
-  import { Badge } from "#lib/components/ui/badge/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
   import { questionItems } from "./surveys.js";
 
   let { questions }: { questions: unknown } = $props();

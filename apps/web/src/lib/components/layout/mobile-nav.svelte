@@ -1,7 +1,7 @@
 <script lang="ts">
   // The navigation as a sheet from the left, below the `md` breakpoint.
   import Zap from "@lucide/svelte/icons/zap";
-  import * as Sheet from "#lib/components/ui/sheet/index.js";
+  import * as Sheet from "@savvagent/console-ui/ui/sheet";
   import { CATALOG_ITEMS, NAV_ITEMS } from "./nav.js";
   import NavItem from "./nav-item.svelte";
 

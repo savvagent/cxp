@@ -4,7 +4,7 @@
   import LogIn from "@lucide/svelte/icons/log-in";
   import Zap from "@lucide/svelte/icons/zap";
   import { page } from "$app/state";
-  import { Button } from "#lib/components/ui/button/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
   import { loginErrorMessage, loginUrl, returnPath } from "#lib/session.js";
 
   let { loginEnabled }: { loginEnabled: boolean } = $props();
