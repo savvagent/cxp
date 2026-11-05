@@ -50,8 +50,15 @@ enum MemberMode {
     Absent,
     /// A member whose `org.id` is some other org's.
     Other,
+    /// A member whose `user.id` is some other user's.
+    OtherUser,
+    /// A member the platform has no email or name for.
+    Unnamed,
     /// 503.
     Down,
+    /// 401: the platform refused this service's own credential, a failure no
+    /// retry fixes.
+    Broken,
 }
 
 #[derive(Default)]
@@ -207,17 +214,20 @@ async fn member(
         .get(&(org, user))
         .copied()
         .unwrap_or(MemberMode::Member);
-    let org_id = match mode {
-        MemberMode::Member => org,
-        MemberMode::Other => Uuid::new_v4(),
+    let (org_id, user_id) = match mode {
+        MemberMode::Member | MemberMode::Unnamed => (org, user),
+        MemberMode::Other => (Uuid::new_v4(), user),
+        MemberMode::OtherUser => (org, Uuid::new_v4()),
         MemberMode::Absent => return Err(StatusCode::NOT_FOUND),
         MemberMode::Down => return Err(StatusCode::SERVICE_UNAVAILABLE),
+        MemberMode::Broken => return Err(StatusCode::UNAUTHORIZED),
     };
+    let named = !matches!(mode, MemberMode::Unnamed);
     Ok(Json(MemberInfo {
         user: UserInfo {
-            id: user,
-            email: Some("ada@acme.test".into()),
-            name: Some("Ada".into()),
+            id: user_id,
+            email: named.then(|| "ada@acme.test".into()),
+            name: named.then(|| "Ada".into()),
         },
         org: OrgInfo {
             id: org_id,
@@ -564,6 +574,39 @@ async fn a_session_whose_member_is_gone_is_signed_out(pool: PgPool) {
         r.body,
         json!({"signedIn": false, "loginEnabled": true, "platformUrl": h.base})
     );
+}
+
+/// The user id comes only from the verified token too.
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn a_session_the_platform_answers_for_another_user_is_refused(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::OtherUser).await;
+    assert_eq!(r.status, StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(r.body["code"], "internal");
+    assert!(r.body.get("user").is_none());
+}
+
+/// A platform failure no retry fixes is a `500` with no `Retry-After`.
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn a_session_is_500_when_the_member_lookup_fails_for_good(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::Broken).await;
+    assert_eq!(r.status, StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(r.body["code"], "internal");
+    assert!(r.headers.get("retry-after").is_none());
+}
+
+/// A user the platform has no email or name for is still signed in; the
+/// shell shows what it has.
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn an_unnamed_user_is_signed_in_with_nulls(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::Unnamed).await;
+    assert_eq!(r.status, StatusCode::OK);
+    assert_eq!(r.body["signedIn"], true);
+    assert_eq!(r.body["user"]["email"], Value::Null);
+    assert_eq!(r.body["user"]["name"], Value::Null);
+    assert!(r.body["user"].as_object().unwrap().contains_key("email"));
 }
 
 /// The org id comes only from the verified token: a member lookup that
