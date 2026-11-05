@@ -1,6 +1,6 @@
 # Web console on the shared `@savvagent/console-ui` shell
 
-**Status:** DRAFT
+**Status:** IMPLEMENTED (#84)
 **Ticket:** savvagent/cxp#82 (part of savvagent/platform#154)
 
 ## Brief

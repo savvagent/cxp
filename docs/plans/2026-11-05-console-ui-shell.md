@@ -51,7 +51,7 @@ the package's; installs authenticate to GitHub Packages with `NODE_AUTH_TOKEN`.
 - Modify: `crates/cxp-http/src/console/routes.rs` (`SessionView`, `session`)
 - Modify: `crates/cxp-api/tests/console.rs` (stub route, assertions, new tests)
 
-- [ ] **Step 1: stub the member API.** In `start_platform`, add
+- [x] **Step 1: stub the member API.** In `start_platform`, add
   `GET /internal/orgs/{org}/members/{user}` answering from a new `Platform` field
   `members: HashMap<(Uuid, Uuid), MemberMode>` where the mode is "member" (default when absent:
   answer `MemberInfo { user: { id: user, email: "ada@acme.test", name: "Ada" }, org: { id: org,
@@ -61,7 +61,7 @@ the package's; installs authenticate to GitHub Packages with `NODE_AUTH_TOKEN`.
   `(org, user)`, so each test sets its mode before its first `/auth/session` call. `Harness`
   gains a `base: String` (the stub's URL) for the `platformUrl` assertions. `routes.rs` reaches
   the client and URL through `console.inner` (a child module), so `mod.rs` needs no change.
-- [ ] **Step 2: failing tests.** Update `the_console_signs_in_through_the_platform`: the signed-in
+- [x] **Step 2: failing tests.** Update `the_console_signs_in_through_the_platform`: the signed-in
   body is the old fields plus `"user": {"id": user, "email": "ada@acme.test", "name": "Ada"}`,
   `"org": {"id": org, "slug": "acme", "name": "Acme"}`, `"platformUrl": <stub base>`; the
   signed-out body is `{"signedIn": false, "loginEnabled": true, "platformUrl": <stub base>}`.
@@ -70,7 +70,7 @@ the package's; installs authenticate to GitHub Packages with `NODE_AUTH_TOKEN`.
   `a_session_the_platform_answers_for_another_org_is_refused` (Other → `500`, `code: internal`),
   `a_session_is_503_while_the_member_lookup_is_down` (Down → `503`, `Retry-After` set).
   Run `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp cargo test -p cxp-api --test console --locked`; see them fail.
-- [ ] **Step 3: implement.** `SessionView` gains `user: Option<UserView>`, `org: Option<OrgView>`,
+- [x] **Step 3: implement.** `SessionView` gains `user: Option<UserView>`, `org: Option<OrgView>`,
   `platform_url: Option<String>` (camelCase, `skip_serializing_if = "Option::is_none"`);
   `UserView { id: Uuid, email: Option<String>, name: Option<String> }` (email and name serialize as
   `null` when absent), `OrgView { id: Uuid, slug: String, name: String }`. After
@@ -80,8 +80,8 @@ the package's; installs authenticate to GitHub Packages with `NODE_AUTH_TOKEN`.
   `internal()`; `Ok(None)` → signed out; `Err(e)` → `unavailable()` when `e.is_retriable()`, else
   `tracing::error!` and `internal()`. `platformUrl` is `settings.platform_url` whenever the console
   is configured (signed in or out), absent when it is not.
-- [ ] **Step 4: pass.** Re-run the console test binary, then the full gates (test, clippy, fmt).
-- [ ] **Step 5: commit** `feat(console): return the user, org and platform url from /auth/session`.
+- [x] **Step 4: pass.** Re-run the console test binary, then the full gates (test, clippy, fmt).
+- [x] **Step 5: commit** `feat(console): return the user, org and platform url from /auth/session`.
 
 Reminders: org/user ids only from the principal; the member call uses the service credential, never
 the stored token; nothing about the cookie or refresh changes; no SQL. Every `cargo test` command
@@ -94,7 +94,7 @@ carries `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp`.
 **Files:**
 - Modify: `crates/cxp-server/src/lib.rs` (`CONSOLE_CSP`, `ConsoleAssets`, `router`, tests)
 
-- [ ] **Step 1: failing test.** In the console-serving test (the one asserting
+- [x] **Step 1: failing test.** In the console-serving test (the one asserting
   `headers["content-security-policy"]`), build the app with a known platform URL and assert the
   exact header `default-src 'self'; script-src 'self'; connect-src 'self' <platform origin>;
   style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'; form-action 'self';
@@ -104,13 +104,13 @@ carries `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp`.
   console-CSP assertions in `lib.rs` (around lines 1000 and 1037) move to the built header. Run
   `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp cargo test -p cxp-server --lib --locked`;
   see it fail.
-- [ ] **Step 2: implement.** Replace the constant with `fn console_csp(platform_origin: &str) ->
+- [x] **Step 2: implement.** Replace the constant with `fn console_csp(platform_origin: &str) ->
   String` (same directives, `connect-src 'self' {origin}`), the origin from
   `url::Url::parse(&config.platform_url)?.origin().ascii_serialization()`; `ConsoleAssets` holds the
   `HeaderValue`, built once in `router` (a parse failure is a startup error, as other config
   errors are). Doc comment says why (the shared shell's service list, savvagent/cxp#82).
-- [ ] **Step 3: pass.** The lib tests, then the full gates.
-- [ ] **Step 4: commit** `feat(server): let the console reach the platform's service list`.
+- [x] **Step 3: pass.** The lib tests, then the full gates.
+- [x] **Step 4: commit** `feat(server): let the console reach the platform's service list`.
 
 ### Task 3: install `@savvagent/console-ui` from GitHub Packages everywhere
 
@@ -121,31 +121,31 @@ carries `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp`.
 - Modify: `apps/web/package.json`, `pnpm-lock.yaml` (dependency already added, uncommitted)
 - Modify: `Dockerfile`, `.github/workflows/ci.yml`, `docs/deploy/fly.md`, `CLAUDE.md`
 
-- [ ] **Step 1: `.npmrc`** holds exactly the two lines from the spec (placeholder, no token).
-- [ ] **Step 2: Dockerfile console stage.** `COPY .npmrc` with the manifests; the install becomes
+- [x] **Step 1: `.npmrc`** holds exactly the two lines from the spec (placeholder, no token).
+- [x] **Step 2: Dockerfile console stage.** `COPY .npmrc` with the manifests; the install becomes
   `RUN --mount=type=secret,id=NODE_AUTH_TOKEN --mount=type=cache,… sh -c 'test -s
   /run/secrets/NODE_AUTH_TOKEN || { echo "build with --secret id=NODE_AUTH_TOKEN (a token that can
   read @savvagent packages)" >&2; exit 1; }; NODE_AUTH_TOKEN="$(cat /run/secrets/NODE_AUTH_TOKEN)"
   pnpm install --frozen-lockfile --filter @cxp/web'`. A comment says why (GitHub Packages; a
   secret mount keeps the token out of every layer). No `ARG`/`ENV` for it.
-- [ ] **Step 3: CI.** `web`: job `permissions: { contents: read, packages: read }`, `env:
+- [x] **Step 3: CI.** `web`: job `permissions: { contents: read, packages: read }`, `env:
   NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}` on the `pnpm install` step. `docker-build`: the
   same permissions; build-push-action `secrets: | NODE_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}`.
   `deploy`: `permissions: { contents: read, packages: read }`; the build step passes
   `--build-secret NODE_AUTH_TOKEN="$NODE_AUTH_TOKEN"` with `NODE_AUTH_TOKEN: ${{
   secrets.GITHUB_TOKEN }}` in its env.
-- [ ] **Step 4: docs.** `docs/deploy/fly.md`: every hand `fly deploy … --build-only`/`--remote-only`
+- [x] **Step 4: docs.** `docs/deploy/fly.md`: every hand `fly deploy … --build-only`/`--remote-only`
   build command gains `--build-secret NODE_AUTH_TOKEN="$(gh auth token)"`, with one sentence on
   why. `CLAUDE.md`: the bootstrap pnpm line becomes `export NODE_AUTH_TOKEN=$(gh auth token) && pnpm
   install --frozen-lockfile`; the `podman build` gate becomes `podman build --secret
   id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN -t otto-cxp:check .`; the Architecture line for
   `.npmrc` joins the path lists of the pnpm and `podman build` gates. (The Architecture line
   that names `src/lib/locale.ts` changes in Task 5, with the deletion.)
-- [ ] **Step 5: verify.** `npx -y pnpm@9.15.9 install --frozen-lockfile` from the root;
+- [x] **Step 5: verify.** `npx -y pnpm@9.15.9 install --frozen-lockfile` from the root;
   `NODE_AUTH_TOKEN=$(gh auth token) podman build --secret id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN -t otto-cxp:check .`
   succeeds; `podman history --no-trunc otto-cxp:check` shows neither the token nor
   `NODE_AUTH_TOKEN` in any `ENV`/`ARG`, and the build log does not contain the token.
-- [ ] **Step 6: commit** `build(web): install @savvagent/console-ui from github packages`.
+- [x] **Step 6: commit** `build(web): install @savvagent/console-ui from github packages`.
 
 ### Task 4: components, utilities and theme from the package
 
@@ -161,13 +161,13 @@ carries `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp`.
   `tailwind-merge`, `clsx`, `tw-animate-css`, `@internationalized/date` when nothing in `src`
   imports them; `@lucide/svelte` to the package's range so one copy installs)
 
-- [ ] **Step 1:** rewrite imports (`#lib/components/ui/button/index.js` →
+- [x] **Step 1:** rewrite imports (`#lib/components/ui/button/index.js` →
   `@savvagent/console-ui/ui/button`, same named exports and namespace imports), delete the 17
   directories, update `utils.ts`, `app.css`, dependencies.
-- [ ] **Step 2: verify.** The root pnpm gate and the `podman build` gate (Global Constraints;
+- [x] **Step 2: verify.** The root pnpm gate and the `podman build` gate (Global Constraints;
   svelte-check in the build fails on any export the package lacks); `grep -rn "components/ui/" apps/web/src` shows only `sonner`;
   `pnpm-lock.yaml` has one `bits-ui` and one `@lucide/svelte`.
-- [ ] **Step 3: commit** `refactor(web): build the console from @savvagent/console-ui components`.
+- [x] **Step 3: commit** `refactor(web): build the console from @savvagent/console-ui components`.
 
 ### Task 5: the shared shell, session and locale
 
@@ -181,19 +181,19 @@ carries `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp`.
   `apps/web/src/lib/session.test.ts`, `apps/web/src/lib/format.ts` (comment), `CLAUDE.md`
   (the `apps/web` Architecture line: the shell package instead of `src/lib/locale.ts`)
 
-- [ ] **Step 1: failing tests** in `session.test.ts`: the schema accepts the new signed-in body
+- [x] **Step 1: failing tests** in `session.test.ts`: the schema accepts the new signed-in body
   (with and without `user.locale`), rejects one missing `org`, accepts signed-out with and without
   `platformUrl`; `toConsoleSession` returns `{ user, orgs: [org], currentOrg: org, platformUrl }`
   with `org.role` from `role`. Run `npx -y pnpm@9.15.9 exec vitest run src/lib/session.test.ts`
   in `apps/web`; see them fail.
-- [ ] **Step 2: session.** Extend the schema (`user: {id: guid, email: string|null, name:
+- [x] **Step 2: session.** Extend the schema (`user: {id: guid, email: string|null, name:
   string|null, locale?: string|null}`, `org: {id: guid, slug, name}`, `platformUrl: string`);
   signed out `platformUrl` optional; add `toConsoleSession`.
-- [ ] **Step 3: locale.** `+layout.svelte` calls `resolveAtBoot(overwriteGetLocale)` from
+- [x] **Step 3: locale.** `+layout.svelte` calls `resolveAtBoot(overwriteGetLocale)` from
   `@savvagent/console-ui` with `#lib/paraglide/runtime.js`'s `overwriteGetLocale`; delete
   `locale.ts` and its test. In `root-layout.svelte`, an `$effect` calls
   `reconcile(session.data.user.locale)` when signed in.
-- [ ] **Step 4: shell.** `root-layout.svelte` per the spec's layout block: `ConsoleHeader`
+- [x] **Step 4: shell.** `root-layout.svelte` per the spec's layout block: `ConsoleHeader`
   (`service="cxp"`, `session={toConsoleSession(session.data)}`, `onSignOut={signOut}`, `nav` snippet with
   the mobile menu button and the ⌘K search button, both with their old classes and labels),
   sidebar and mobile nav beside a scrolling column holding `<main>` (first child
@@ -201,21 +201,21 @@ carries `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp`.
   `header.svelte`. `sign-in.svelte` gains a `platformUrl` prop (passed by `root-layout.svelte`
   from the signed-out session) and renders `ConsoleHeader platformUrl service="cxp"` above and
   `ConsoleFooter` below the card when it is set. `markSignedOut` keeps the last `platformUrl`.
-- [ ] **Step 5: pass.** The root pnpm gate and the `podman build` gate (Global Constraints);
+- [x] **Step 5: pass.** The root pnpm gate and the `podman build` gate (Global Constraints);
   `test/index-html.test.ts` still finds no inline script.
-- [ ] **Step 6: commit** `feat(web): render the console inside the shared savvagent shell`.
+- [x] **Step 6: commit** `feat(web): render the console inside the shared savvagent shell`.
 
 ### Task 6: screenshot check (no repo changes)
 
 **Model:** orchestrator
 
-- [ ] **Baseline (done before any change):** `apps/web` built at `origin/main` (b23b04b), its
+- [x] **Baseline (done before any change):** `apps/web` built at `origin/main` (b23b04b), its
   `dist` copied to the scratchpad as `cxp82-dist-before`.
-- [ ] **Harness:** `cxp82-mock-server.mjs` in the scratchpad serves a `dist` under `/console/`
+- [x] **Harness:** `cxp82-mock-server.mjs` in the scratchpad serves a `dist` under `/console/`
   with the server's CSP (plus the harness origin in `connect-src`), stubs `/auth/session`
   (signed in, with the new fields; the old console ignores them), `/api/v1/*` from
   `crates/cxp-api/tests/fixtures/wire.json`, and `/services/v1.json`; no service worker.
-- [ ] **Capture:** `cxp82-shots/shoot.cjs` (Playwright, Chromium) captures desktop 1280x800 for
+- [x] **Capture:** `cxp82-shots/shoot.cjs` (Playwright, Chromium) captures desktop 1280x800 for
   dashboard, customers, tickets, feedback, surveys, catalog/experiences and mobile 390x844 for
   dashboard and tickets, light and dark (`.dark` on `<html>`), and reports console errors (a CSP
   violation included). Run against the baseline and the branch build; compare pairwise. Also
@@ -223,5 +223,5 @@ carries `DATABASE_URL=postgres://cxp:cxp@localhost:15435/otto_cxp`.
 
 ### Task 7: record as shipped (same PR, last commit before merge)
 
-- [ ] The spec's `**Status:**` becomes `IMPLEMENTED (#<PR>)` and every box here is ticked;
+- [x] The spec's `**Status:**` becomes `IMPLEMENTED (#<PR>)` and every box here is ticked;
   commit `docs: mark the console-ui shell spec implemented`, then re-run the merge gate.
