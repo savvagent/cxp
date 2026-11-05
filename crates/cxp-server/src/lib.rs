@@ -270,13 +270,11 @@ fn console_csp(platform_origin: &str) -> String {
 /// already requires https, or http on loopback). Built once at boot, so a URL
 /// that has no origin fails boot rather than a request.
 fn console_csp_for(platform_url: &str) -> Result<HeaderValue> {
-    let origin = url::Url::parse(platform_url)
-        .map_err(|e| anyhow!("CXP_PLATFORM_URL is not a URL: {e}"))?
-        .origin();
-    if !origin.is_tuple() {
-        return Err(anyhow!("CXP_PLATFORM_URL has no origin"));
-    }
-    HeaderValue::from_str(&console_csp(&origin.ascii_serialization()))
+    // The same origin `/auth/session` hands the shared shell
+    // (`cxp_http::console::origin_of`), so the two cannot disagree.
+    let origin = cxp_http::console::origin_of(platform_url)
+        .ok_or_else(|| anyhow!("CXP_PLATFORM_URL has no origin"))?;
+    HeaderValue::from_str(&console_csp(&origin))
         .map_err(|_| anyhow!("CXP_PLATFORM_URL makes an invalid Content-Security-Policy"))
 }
 

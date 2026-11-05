@@ -388,24 +388,6 @@ fn role_name(role: Role) -> &'static str {
     }
 }
 
-/// The platform's origin (`CXP_PLATFORM_URL` with any path dropped), which
-/// the shared shell builds its links and service-list URL from, and which the
-/// console's CSP admits for `connect-src`. The config already requires a URL
-/// with https (or http on loopback), so the fallback is never taken in practice.
-fn platform_origin(platform_url: &str) -> String {
-    url::Url::parse(platform_url)
-        .map(|u| u.origin().ascii_serialization())
-        .unwrap_or_else(|_| platform_url.trim_end_matches('/').to_string())
-}
-
-/// Why `/auth/session` cannot say who is signed in.
-enum Refusal {
-    /// The platform did not answer; retry shortly (`503`).
-    Unavailable,
-    /// The platform answered wrongly or refused this service (`500`).
-    Internal,
-}
-
 impl SessionView {
     fn signed_out(login_enabled: bool, platform_url: Option<String>) -> Self {
         Self {
@@ -430,7 +412,7 @@ impl SessionView {
         console: &Console,
         p: Principal,
         platform_url: String,
-    ) -> Result<Self, Refusal> {
+    ) -> Result<Self, AuthFailure> {
         let found = console
             .inner
             .platform
@@ -440,16 +422,16 @@ impl SessionView {
             Ok(Some(m)) if m.user.id == p.user_id.as_uuid() && m.org.id == p.org_id.as_uuid() => m,
             Ok(Some(_)) => {
                 tracing::error!("the platform's member lookup answered for another user or org");
-                return Err(Refusal::Internal);
+                return Err(AuthFailure::Internal);
             }
             Ok(None) => return Ok(Self::signed_out(true, Some(platform_url))),
             Err(e) if e.is_retriable() => {
                 tracing::warn!(error = %e, "the platform's member lookup is unavailable");
-                return Err(Refusal::Unavailable);
+                return Err(AuthFailure::Unavailable);
             }
             Err(e) => {
                 tracing::error!(error = %e, "the platform's member lookup failed");
-                return Err(Refusal::Internal);
+                return Err(AuthFailure::Internal);
             }
         };
         Ok(Self {
@@ -481,14 +463,14 @@ async fn session(State(console): State<Option<Console>>, headers: HeaderMap) -> 
     let view = match console {
         None => SessionView::signed_out(false, None),
         Some(console) => {
-            let platform_url = platform_origin(&console.inner.settings.platform_url);
+            let platform_url = console.inner.platform_origin.clone();
             match console.session_cookie(&headers) {
                 None => SessionView::signed_out(true, Some(platform_url)),
                 Some(cookie) => match console.authenticate(cookie).await {
                     Ok(p) => match SessionView::signed_in(&console, p, platform_url).await {
                         Ok(view) => view,
-                        Err(Refusal::Unavailable) => return unavailable(),
-                        Err(Refusal::Internal) => return internal(),
+                        Err(AuthFailure::Unavailable) => return unavailable(),
+                        Err(_) => return internal(),
                     },
                     Err(AuthFailure::Unavailable) => return unavailable(),
                     Err(AuthFailure::Internal) => return internal(),
@@ -542,22 +524,6 @@ mod tests {
         ] {
             assert_eq!(safe_next(bad), None, "{bad:?}");
         }
-    }
-
-    #[test]
-    fn the_platform_url_is_given_as_its_origin() {
-        assert_eq!(
-            platform_origin("https://savvagent.com"),
-            "https://savvagent.com"
-        );
-        assert_eq!(
-            platform_origin("https://savvagent.com/x/"),
-            "https://savvagent.com"
-        );
-        assert_eq!(
-            platform_origin("http://127.0.0.1:3000/"),
-            "http://127.0.0.1:3000"
-        );
     }
 
     #[test]

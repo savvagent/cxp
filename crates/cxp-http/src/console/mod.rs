@@ -131,12 +131,12 @@ use savvagent_tenant::ids::{OrgId, UserId};
 use savvagent_tenant::Db;
 use sha2::Sha256;
 
-pub use cookies::same_origin;
+pub use cookies::{origin_of, same_origin};
 pub use oauth::pkce_challenge;
 pub(crate) use routes::cross_site;
 pub use routes::{router, safe_next, OAUTH_MAX_AGE_SECS};
 
-use cookies::{is_token_shaped, origin_of, read_cookie, Cookies};
+use cookies::{is_token_shaped, read_cookie, Cookies};
 use oauth::{PlatformOAuth, TokenError};
 
 /// What the console asks the platform for: every scope its routes check. The
@@ -285,6 +285,10 @@ struct Inner {
     cookies: Cookies,
     /// `scheme://host[:port]` of the public URL, as a browser sends `Origin`.
     origin: String,
+    /// `scheme://host[:port]` of `CXP_PLATFORM_URL`: what `/auth/session`
+    /// tells the shared console shell. `cxp-server` builds the console's CSP
+    /// from the same [`origin_of`] and refuses to boot when it has none.
+    platform_origin: String,
     /// The refresh in flight for each session, by cookie hash: the in-process
     /// single flight. An entry is removed when its refresh task ends, however
     /// it ends ([`InflightEntry`]).
@@ -323,6 +327,7 @@ impl Console {
             inner: Arc::new(Inner {
                 oauth: PlatformOAuth::new(&settings.platform_url),
                 origin: origin_of(&settings.public_url).unwrap_or_default(),
+                platform_origin: origin_of(&settings.platform_url).unwrap_or_default(),
                 cookies: Cookies { secure },
                 keys: settings.keys.clone(),
                 db,

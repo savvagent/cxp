@@ -1011,7 +1011,7 @@ fly secrets list -a otto-cxp
 #     then start it here with an argument cxp-server rejects before it touches anything (no
 #     database, no migration). It must start and exit 1.
 fly deploy -a otto-cxp --build-only --push --remote-only --image-label m6 \
-  --build-secret NODE_AUTH_TOKEN="$(gh auth token)"
+  --build-secret NODE_AUTH_TOKEN="$PACKAGES_READ_TOKEN"
 FLY_API_TOKEN="$(fly tokens create deploy -a otto-cxp)" \
 FLY_API_TOKEN_MIGRATE="$(fly tokens create deploy -a otto-cxp-migrate)" \
   scripts/deploy/copy-image.sh registry.fly.io/otto-cxp:m6 registry.fly.io/otto-cxp-migrate:m6
@@ -1106,7 +1106,7 @@ BEGIN; SET LOCAL ROLE cxp_app; SELECT current_user; ROLLBACK;   -- cxp_app
 ```
 
 **Then merge the PR for #28** (with `FLY_DEPLOY` enabled the merge deploys; otherwise
-`fly deploy -a otto-cxp --remote-only --build-secret NODE_AUTH_TOKEN="$(gh auth token)"`). The deploy job's migration step applies 0008 as `cxp_owner`. If T1 was skipped
+`fly deploy -a otto-cxp --remote-only --build-secret NODE_AUTH_TOKEN="$PACKAGES_READ_TOKEN"`). The deploy job's migration step applies 0008 as `cxp_owner`. If T1 was skipped
 it fails with `role cxp_app does not exist and cxp_owner may not create it`, nothing is recorded,
 and the old release keeps serving: run T1, then deploy again.
 
@@ -1745,13 +1745,16 @@ tokens are your own; nothing here needs the CI ones). Every image build needs
 Packages: the console installs `@savvagent/console-ui` from there, and the Dockerfile takes the
 token as a build secret so it lands in no layer (the deploy job passes its `GITHUB_TOKEN`, which
 reads the package because the package grants this repo Read access in its Actions settings, a
-one-time grant by an org admin). By hand, `gh auth token` works once the `gh` login holds the
-`read:packages` scope (`gh auth refresh -s read:packages`, once):
+one-time grant by an org admin). By hand, the build secret goes to Fly's remote builder, so use a
+token that can only read packages, not your `gh` login (which can usually write to repos): a
+classic personal access token with just `read:packages`, exported as `PACKAGES_READ_TOKEN`. A
+local `podman build` keeps the token on your machine, so `gh auth token` (with `read:packages`:
+`gh auth refresh -s read:packages`, once) is fine there. The hand deploy:
 
 ```bash
 SHA=$(git rev-parse HEAD)
 fly deploy --build-only --push --remote-only -a otto-cxp --image-label "sha-$SHA" \
-  --build-secret NODE_AUTH_TOKEN="$(gh auth token)"
+  --build-secret NODE_AUTH_TOKEN="$PACKAGES_READ_TOKEN"
 FLY_API_TOKEN="$(fly tokens create deploy -a otto-cxp)" \
 FLY_API_TOKEN_MIGRATE="$(fly tokens create deploy -a otto-cxp-migrate)" \
   scripts/deploy/copy-image.sh "registry.fly.io/otto-cxp:sha-$SHA" "registry.fly.io/otto-cxp-migrate:sha-$SHA"

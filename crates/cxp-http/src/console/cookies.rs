@@ -94,7 +94,10 @@ pub(crate) fn read_cookie<'a>(headers: &'a HeaderMap, name: &str) -> Option<&'a 
 }
 
 /// `scheme://host[:port]` of `url`, as a browser serializes an `Origin`.
-pub(crate) fn origin_of(url: &str) -> Option<String> {
+/// The one definition of an origin here: the console's own (for the
+/// same-origin check), and the platform's (what `/auth/session` gives the
+/// shared shell, and what `cxp-server` admits in the console's CSP).
+pub fn origin_of(url: &str) -> Option<String> {
     let url = url::Url::parse(url).ok()?;
     url.has_host().then(|| url.origin().ascii_serialization())
 }
@@ -187,7 +190,13 @@ mod tests {
             origin_of("http://localhost:8080").as_deref(),
             Some("http://localhost:8080")
         );
+        // A path is dropped: the platform URL may carry one.
+        assert_eq!(
+            origin_of("https://savvagent.com/x/").as_deref(),
+            Some("https://savvagent.com")
+        );
         assert_eq!(origin_of("nonsense"), None);
+        assert_eq!(origin_of("data:text/plain,x"), None);
     }
 
     #[test]

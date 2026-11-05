@@ -103,7 +103,7 @@ root `.npmrc`, `Dockerfile`, `.github/workflows/ci.yml`, `docs/deploy/fly.md`, `
 ```rust
 user: Option<UserView>,       // { id, email: Option<String>, name: Option<String> }
 org: Option<OrgView>,         // { id, slug, name }
-platform_url: Option<String>, // CXP_PLATFORM_URL, whenever console sign-in is configured
+platform_url: Option<String>, // CXP_PLATFORM_URL's origin, whenever console sign-in is configured
 ```
 
 Flow when signed in: `console.authenticate(cookie)` yields the `Principal` (org and user from the
@@ -200,7 +200,8 @@ header and that `script-src 'self'` has no `unsafe` source.
 - **Untrusted text:** names and email are platform data rendered as text by Svelte (escaped).
 - **No SQL outside `cxp-core`:** no SQL added. **Migrations:** none. **Metering:** none.
 - **Licensing:** the package is the org's own, `UNLICENSED`, consumed (not vendored) by an
-  AGPL app; no files of it are copied into the repo.
+  AGPL app; no files of it are copied into the repo. See Risks: building the console now needs
+  access to a private package.
 
 ## Migration
 
@@ -248,6 +249,15 @@ None.
   Kept outside the repo.
 
 ## Risks & open questions
+
+- **The public AGPL repo now builds against a private, `UNLICENSED` package.** savvagent/cxp is
+  public; savvagent/console-ui is private. Nobody outside the org can build `apps/web` or the
+  image from the published source, and pull requests from forks get a workflow token without
+  package access, so their `web` and `docker-build` jobs fail. Savvagent holds both copyrights,
+  so this is a policy choice, not a violation, but AGPL section 13's Corresponding Source for the
+  served console is affected. **Human decision (Rob):** accept it, or publish console-ui under an
+  AGPL-compatible licence (and make the package public). The brief chose this dependency, so
+  the change ships and the decision is handed off.
 
 - **Two copies of shared libraries** if CXP's direct ranges drift from the package's: mitigated by
   dropping the direct dependencies the package now provides.
