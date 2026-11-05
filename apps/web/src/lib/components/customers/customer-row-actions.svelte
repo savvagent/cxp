@@ -5,8 +5,8 @@
   import { toast } from "svelte-sonner";
   import { toastError } from "#lib/errors.js";
   import ConfirmDialog from "#lib/components/shared/confirm-dialog.svelte";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as DropdownMenu from "#lib/components/ui/dropdown-menu/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as DropdownMenu from "@savvagent/console-ui/ui/dropdown-menu";
   import { createDeleteCustomer } from "#lib/queries/index.js";
   import type { Customer } from "#lib/types.js";
   import { displayName } from "./customers.js";

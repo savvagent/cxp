@@ -26,14 +26,14 @@
     surveyUpdate,
     type SurveyEditForm,
   } from "#lib/components/surveys/surveys.js";
-  import { Badge } from "#lib/components/ui/badge/index.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Card from "#lib/components/ui/card/index.js";
-  import { Input } from "#lib/components/ui/input/index.js";
-  import { Label } from "#lib/components/ui/label/index.js";
-  import { Skeleton } from "#lib/components/ui/skeleton/index.js";
-  import * as Table from "#lib/components/ui/table/index.js";
-  import { Textarea } from "#lib/components/ui/textarea/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Card from "@savvagent/console-ui/ui/card";
+  import { Input } from "@savvagent/console-ui/ui/input";
+  import { Label } from "@savvagent/console-ui/ui/label";
+  import { Skeleton } from "@savvagent/console-ui/ui/skeleton";
+  import * as Table from "@savvagent/console-ui/ui/table";
+  import { Textarea } from "@savvagent/console-ui/ui/textarea";
   import { localeDate, localeDateTime } from "#lib/format.js";
   import { createSurvey, createSurveyResponses, createUpdateSurvey } from "#lib/queries/index.js";
   import { responsesCount } from "#lib/surveys.js";

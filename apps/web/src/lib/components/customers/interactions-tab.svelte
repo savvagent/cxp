@@ -2,8 +2,8 @@
   import { m } from "#lib/paraglide/messages.js";
   import Zap from "@lucide/svelte/icons/zap";
   import EmptyState from "#lib/components/shared/empty-state.svelte";
-  import { Badge } from "#lib/components/ui/badge/index.js";
-  import * as Table from "#lib/components/ui/table/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
+  import * as Table from "@savvagent/console-ui/ui/table";
   import type { Interaction } from "#lib/types.js";
   import { formatDateTime } from "#lib/format.js";
   import { interactionTypeLabel } from "./customers.js";

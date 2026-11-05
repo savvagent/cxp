@@ -2,8 +2,8 @@
   // The create and edit customer forms' fields, as the React dialogs laid them
   // out; `idPrefix` keeps the two forms' element ids apart ("" and "edit-").
   import { m } from "#lib/paraglide/messages.js";
-  import { Input } from "#lib/components/ui/input/index.js";
-  import { Label } from "#lib/components/ui/label/index.js";
+  import { Input } from "@savvagent/console-ui/ui/input";
+  import { Label } from "@savvagent/console-ui/ui/label";
   import type { CustomerForm, CustomerFormErrors } from "./customers.js";
 
   let {

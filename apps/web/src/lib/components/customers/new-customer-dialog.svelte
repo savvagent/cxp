@@ -2,8 +2,8 @@
   import { m } from "#lib/paraglide/messages.js";
   import { toast } from "svelte-sonner";
   import { toastError } from "#lib/errors.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Dialog from "#lib/components/ui/dialog/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Dialog from "@savvagent/console-ui/ui/dialog";
   import { createCreateCustomer } from "#lib/queries/index.js";
   import CustomerFormFields from "./customer-form-fields.svelte";
   import {

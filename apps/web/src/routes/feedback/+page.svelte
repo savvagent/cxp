@@ -20,10 +20,10 @@
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
   import PageHeader from "#lib/components/shared/page-header.svelte";
-  import { Badge } from "#lib/components/ui/badge/index.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Select from "#lib/components/ui/select/index.js";
-  import * as Table from "#lib/components/ui/table/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Select from "@savvagent/console-ui/ui/select";
+  import * as Table from "@savvagent/console-ui/ui/table";
   import { ALL } from "#lib/forms.js";
   import { formatNumber, localeDate } from "#lib/format.js";
   import { pageWindow } from "#lib/pagination.js";

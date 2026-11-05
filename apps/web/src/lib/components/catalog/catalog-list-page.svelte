@@ -15,7 +15,7 @@
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import { LoadingTable } from "#lib/components/shared/loading-state.js";
   import PageHeader from "#lib/components/shared/page-header.svelte";
-  import * as Table from "#lib/components/ui/table/index.js";
+  import * as Table from "@savvagent/console-ui/ui/table";
   import { localeDate } from "#lib/format.js";
   import { PAGE_SIZE, showingLine } from "#lib/pagination.js";
   import { createMyTeams } from "#lib/queries/index.js";

@@ -1,7 +1,7 @@
 <script lang="ts">
   import InboxIcon from "@lucide/svelte/icons/inbox";
   import type { Component } from "svelte";
-  import { Button } from "#lib/components/ui/button/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
 
   let {
     icon: Icon = InboxIcon,

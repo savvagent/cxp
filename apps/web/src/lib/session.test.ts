@@ -14,6 +14,7 @@ import {
   sessionKeys,
   sessionSchema,
   signOut,
+  toConsoleSession,
   type Session,
 } from "./session";
 
@@ -24,6 +25,9 @@ const SIGNED_IN: Session = {
   orgId: "0b8f4d1a-3c2e-4f5a-8b6c-7d9e0f1a2b3c",
   role: "admin",
   scopes: ["cxp:read", "cxp:write"],
+  user: { id: "6f1c1f3e-7d5b-4a43-9a51-2c1b0d5e8f10", email: "ada@acme.test", name: "Ada" },
+  org: { id: "0b8f4d1a-3c2e-4f5a-8b6c-7d9e0f1a2b3c", slug: "acme", name: "Acme" },
+  platformUrl: "https://savvagent.com",
 };
 
 beforeEach(() => {
@@ -69,10 +73,20 @@ describe("api calls carry the session cookie", () => {
     respond(401, { error: "invalid_token", error_description: "access revoked" });
     await expect(apiFetch("/tickets")).rejects.toMatchObject({ status: 401 });
     expect(location.assign).not.toHaveBeenCalled();
+    // The platform URL survives, so the sign-in screen keeps the shared header.
     expect(queryClient.getQueryData(sessionKeys.all)).toEqual({
       signedIn: false,
       loginEnabled: true,
+      platformUrl: "https://savvagent.com",
     });
+  });
+
+  it("a 401 with sign-in off leaves no platform to show", async () => {
+    browserAt("/console/tickets");
+    queryClient.setQueryData(sessionKeys.all, { signedIn: false, loginEnabled: false });
+    respond(401, { error: "unauthenticated" });
+    await expect(apiFetch("/tickets")).rejects.toMatchObject({ status: 401 });
+    expect(queryClient.getQueryData(sessionKeys.all)).toEqual({ signedIn: false, loginEnabled: false });
   });
 
   it("a 401 with no session known asks the server again", async () => {
@@ -114,6 +128,22 @@ describe("the session answer", () => {
     expect(sessionSchema.parse(SIGNED_IN)).toEqual(SIGNED_IN);
     respond(200, { signedIn: false, loginEnabled: false });
     await expect(fetchSession()).resolves.toEqual({ signedIn: false, loginEnabled: false });
+    const signedOut = { signedIn: false, loginEnabled: true, platformUrl: "https://savvagent.com" };
+    expect(sessionSchema.parse(signedOut)).toEqual(signedOut);
+  });
+
+  it("takes the account's locale when the server sends one, and nothing when it does not", () => {
+    const withLocale = { ...SIGNED_IN, user: { ...SIGNED_IN.user, locale: "es" } };
+    expect(sessionSchema.parse(withLocale)).toEqual(withLocale);
+    const noChoice = { ...SIGNED_IN, user: { ...SIGNED_IN.user, locale: null } };
+    expect(sessionSchema.parse(noChoice)).toEqual(noChoice);
+    const parsed = sessionSchema.parse(SIGNED_IN);
+    expect(parsed.signedIn && parsed.user.locale).toBeUndefined();
+  });
+
+  it("an unnamed user is still a user", () => {
+    const unnamed = { ...SIGNED_IN, user: { ...SIGNED_IN.user, email: null, name: null } };
+    expect(sessionSchema.parse(unnamed)).toEqual(unnamed);
   });
 
   it("refuses junk and failures", async () => {
@@ -121,6 +151,11 @@ describe("the session answer", () => {
       { signedIn: true, loginEnabled: true },
       { ...SIGNED_IN, userId: "not-a-uuid" },
       { ...SIGNED_IN, role: "root" },
+      // Signed in needs the org's and user's names and the platform for the shell.
+      { ...SIGNED_IN, org: undefined },
+      { ...SIGNED_IN, user: undefined },
+      { ...SIGNED_IN, platformUrl: undefined },
+      { ...SIGNED_IN, org: { ...SIGNED_IN.org, id: "not-a-uuid" } },
       { signedIn: "yes" },
       null,
     ]) {
@@ -184,5 +219,18 @@ describe("sign-in and sign-out", () => {
     await expect(signOut()).resolves.toBeUndefined();
     expect(location.assign).not.toHaveBeenCalled();
     expect(toastError).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("the shell's session", () => {
+  it("is the one org the session opens, with the session's role", () => {
+    if (!SIGNED_IN.signedIn) throw new Error("fixture");
+    const org = { ...SIGNED_IN.org, role: "admin" };
+    expect(toConsoleSession(SIGNED_IN)).toEqual({
+      user: { id: SIGNED_IN.user.id, email: "ada@acme.test", name: "Ada" },
+      orgs: [org],
+      currentOrg: org,
+      platformUrl: "https://savvagent.com",
+    });
   });
 });

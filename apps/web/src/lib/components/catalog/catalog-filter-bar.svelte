@@ -8,8 +8,8 @@
   import FilterX from "@lucide/svelte/icons/filter-x";
   import { page } from "$app/state";
   import { catalogFiltersFromUrl, type CatalogFilterValues } from "#lib/catalog-filters.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Select from "#lib/components/ui/select/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Select from "@savvagent/console-ui/ui/select";
   import { ALL, fromFilterSelect } from "#lib/forms.js";
   import { applicationQueries, componentQueries, experienceQueries, pageQueries } from "#lib/queries/index.js";
   import { catalogFilterHref, pushUrl, searchOf } from "#lib/url-state.js";

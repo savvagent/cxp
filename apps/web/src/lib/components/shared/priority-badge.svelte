@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Badge } from "#lib/components/ui/badge/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
   import { priorityClass, priorityLabel } from "./badges.js";
 
   let { priority }: { priority: string } = $props();

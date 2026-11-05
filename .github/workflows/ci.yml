@@ -112,6 +112,10 @@ jobs:
   docker-build:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # The console's @savvagent/console-ui comes from GitHub Packages.
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -121,6 +125,9 @@ jobs:
         with:
           context: .
           push: false
+          # A BuildKit secret, never a build arg: it stays out of every layer.
+          secrets: |
+            NODE_AUTH_TOKEN=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -128,6 +135,10 @@ jobs:
   web:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # The console's @savvagent/console-ui comes from GitHub Packages.
+    permissions:
+      contents: read
+      packages: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -145,7 +156,10 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      # `.npmrc` reads the token from NODE_AUTH_TOKEN for the @savvagent scope.
       - run: pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: pnpm lint
       - run: pnpm build
       - run: pnpm test
@@ -174,6 +188,10 @@ jobs:
     needs: [rust, docker-build, web]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.FLY_DEPLOY == 'enabled'
     timeout-minutes: 20
+    # The image build installs @savvagent/console-ui from GitHub Packages.
+    permissions:
+      contents: read
+      packages: read
     concurrency:
       group: deploy-production
       cancel-in-progress: false
@@ -186,9 +204,15 @@ jobs:
           persist-credentials: false
       - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1 # 1.6
       - name: Build and push the image
-        run: flyctl deploy --build-only --push --remote-only -a otto-cxp --image-label "sha-${GITHUB_SHA}"
+        # NODE_AUTH_TOKEN reaches the Dockerfile's install as a build secret,
+        # never a build arg, so it is in no layer of the image.
+        run: >-
+          flyctl deploy --build-only --push --remote-only -a otto-cxp
+          --image-label "sha-${GITHUB_SHA}"
+          --build-secret NODE_AUTH_TOKEN="${NODE_AUTH_TOKEN}"
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Copy the image to otto-cxp-migrate
         run: scripts/deploy/copy-image.sh "$IMAGE" "$MIGRATE_IMAGE"
         env:

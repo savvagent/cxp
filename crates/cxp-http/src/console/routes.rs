@@ -9,7 +9,7 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use chrono::Utc;
-use cxp_core::auth::{self, AuthFailure};
+use cxp_core::auth::{self, AuthFailure, Principal};
 use cxp_core::console_sessions::{self, NewSession};
 use http::{header, HeaderMap, HeaderValue, Method, StatusCode};
 use savvagent_resource::Role;
@@ -354,6 +354,30 @@ struct SessionView {
     role: Option<&'static str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     scopes: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    user: Option<UserView>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    org: Option<OrgView>,
+    /// The platform's origin, for the console's links to it; present whenever
+    /// the console is configured, signed in or not.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    platform_url: Option<String>,
+}
+
+/// The signed-in user. `email` and `name` serialize as `null` when the
+/// platform has none.
+#[derive(Serialize)]
+struct UserView {
+    id: uuid::Uuid,
+    email: Option<String>,
+    name: Option<String>,
+}
+
+#[derive(Serialize)]
+struct OrgView {
+    id: uuid::Uuid,
+    slug: String,
+    name: String,
 }
 
 fn role_name(role: Role) -> &'static str {
@@ -364,36 +388,96 @@ fn role_name(role: Role) -> &'static str {
     }
 }
 
+impl SessionView {
+    fn signed_out(login_enabled: bool, platform_url: Option<String>) -> Self {
+        Self {
+            signed_in: false,
+            login_enabled,
+            user_id: None,
+            org_id: None,
+            role: None,
+            scopes: None,
+            user: None,
+            org: None,
+            platform_url,
+        }
+    }
+
+    /// Signed in as `p`. Introspection carries no names, so they come from the
+    /// platform's member API, called with this service's credential (never the
+    /// session's token). Every id in the answer is the principal's; a lookup
+    /// that answers for another user or org is refused, and one that finds no
+    /// active member reads as signed out, as an inactive token does.
+    async fn signed_in(
+        console: &Console,
+        p: Principal,
+        platform_url: String,
+    ) -> Result<Self, AuthFailure> {
+        let found = console
+            .inner
+            .platform
+            .member(p.org_id.as_uuid(), p.user_id.as_uuid())
+            .await;
+        let m = match found {
+            Ok(Some(m)) if m.user.id == p.user_id.as_uuid() && m.org.id == p.org_id.as_uuid() => m,
+            Ok(Some(_)) => {
+                tracing::error!("the platform's member lookup answered for another user or org");
+                return Err(AuthFailure::Internal);
+            }
+            Ok(None) => return Ok(Self::signed_out(true, Some(platform_url))),
+            Err(e) if e.is_retriable() => {
+                tracing::warn!(error = %e, "the platform's member lookup is unavailable");
+                return Err(AuthFailure::Unavailable);
+            }
+            Err(e) => {
+                tracing::error!(error = %e, "the platform's member lookup failed");
+                return Err(AuthFailure::Internal);
+            }
+        };
+        Ok(Self {
+            signed_in: true,
+            login_enabled: true,
+            user_id: Some(p.user_id.as_uuid()),
+            org_id: Some(p.org_id.as_uuid()),
+            role: Some(role_name(p.role)),
+            scopes: Some(p.scopes),
+            user: Some(UserView {
+                id: p.user_id.as_uuid(),
+                email: m.user.email,
+                name: m.user.name,
+            }),
+            org: Some(OrgView {
+                id: p.org_id.as_uuid(),
+                slug: m.org.slug,
+                name: m.org.name,
+            }),
+            platform_url: Some(platform_url),
+        })
+    }
+}
+
 /// Whether this browser is signed in, and as whom. Always `200` unless the
-/// answer cannot be known (`503`): the console decides what to show from the
-/// body, not the status.
+/// answer cannot be known (`503`, or `500` for a platform that answers
+/// wrongly): the console decides what to show from the body, not the status.
 async fn session(State(console): State<Option<Console>>, headers: HeaderMap) -> Response {
-    let signed_out = |login_enabled| SessionView {
-        signed_in: false,
-        login_enabled,
-        user_id: None,
-        org_id: None,
-        role: None,
-        scopes: None,
-    };
     let view = match console {
-        None => signed_out(false),
-        Some(console) => match console.session_cookie(&headers) {
-            None => signed_out(true),
-            Some(cookie) => match console.authenticate(cookie).await {
-                Ok(p) => SessionView {
-                    signed_in: true,
-                    login_enabled: true,
-                    user_id: Some(p.user_id.as_uuid()),
-                    org_id: Some(p.org_id.as_uuid()),
-                    role: Some(role_name(p.role)),
-                    scopes: Some(p.scopes),
+        None => SessionView::signed_out(false, None),
+        Some(console) => {
+            let platform_url = console.inner.platform_origin.clone();
+            match console.session_cookie(&headers) {
+                None => SessionView::signed_out(true, Some(platform_url)),
+                Some(cookie) => match console.authenticate(cookie).await {
+                    Ok(p) => match SessionView::signed_in(&console, p, platform_url).await {
+                        Ok(view) => view,
+                        Err(AuthFailure::Unavailable) => return unavailable(),
+                        Err(_) => return internal(),
+                    },
+                    Err(AuthFailure::Unavailable) => return unavailable(),
+                    Err(AuthFailure::Internal) => return internal(),
+                    Err(_) => SessionView::signed_out(true, Some(platform_url)),
                 },
-                Err(AuthFailure::Unavailable) => return unavailable(),
-                Err(AuthFailure::Internal) => return internal(),
-                Err(_) => signed_out(true),
-            },
-        },
+            }
+        }
     };
     let mut res = Json(view).into_response();
     no_store(&mut res);

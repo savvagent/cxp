@@ -4,7 +4,7 @@
   import EmptyState from "#lib/components/shared/empty-state.svelte";
   import PriorityBadge from "#lib/components/shared/priority-badge.svelte";
   import StatusBadge from "#lib/components/shared/status-badge.svelte";
-  import * as Table from "#lib/components/ui/table/index.js";
+  import * as Table from "@savvagent/console-ui/ui/table";
   import type { TicketSummary } from "#lib/types.js";
   import { formatDate } from "#lib/format.js";
   import { channelLabel } from "#lib/components/tickets/tickets.js";

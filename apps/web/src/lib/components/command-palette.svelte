@@ -10,7 +10,7 @@
   import { PALETTE_ITEMS } from "#lib/components/layout/nav.js";
   import { NAV_ICONS } from "#lib/components/layout/nav-icons.js";
   import { statusLabel } from "#lib/components/shared/badges.js";
-  import * as Command from "#lib/components/ui/command/index.js";
+  import * as Command from "@savvagent/console-ui/ui/command";
   import {
     NO_RESULTS,
     PALETTE_DEBOUNCE_MS,

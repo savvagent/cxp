@@ -11,14 +11,17 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use axum::body::Body;
-use axum::extract::State;
+use axum::extract::{Path, State};
 use axum::http::{HeaderMap, Request, StatusCode};
-use axum::routing::post;
+use axum::routing::{get, post};
 use axum::{Form, Json, Router};
 use chrono::Utc;
 use cxp_api::{router, AppState, Config};
 use cxp_http::console::{pkce_challenge, Console, ConsoleKeys, ConsoleSettings};
-use savvagent_resource::{ClientConfig, IntrospectionResponse, PlatformClient, Role, TokenKind};
+use savvagent_resource::{
+    ClientConfig, IntrospectionResponse, MemberInfo, OrgInfo, PlatformClient, Role, TokenKind,
+    UserInfo,
+};
 use savvagent_tenant::crypto::Cipher;
 use serde_json::{json, Value};
 use sqlx::postgres::{PgConnectOptions, PgPoolOptions};
@@ -38,8 +41,32 @@ const OAUTH: &str = "__Host-cxp_oauth";
 /// A grant the platform holds: (org, user, scopes).
 type Grant = (Uuid, Uuid, Vec<String>);
 
+/// How the stub's member API answers for one `(org, user)`.
+#[derive(Clone, Copy)]
+enum MemberMode {
+    /// An active member (the default when a pair is not listed).
+    Member,
+    /// Not a member: 404.
+    Absent,
+    /// A member whose `org.id` is some other org's.
+    Other,
+    /// A member whose `user.id` is some other user's.
+    OtherUser,
+    /// A member the platform has no email or name for.
+    Unnamed,
+    /// 503.
+    Down,
+    /// 401: the platform refused this service's own credential, a failure no
+    /// retry fixes.
+    Broken,
+}
+
 #[derive(Default)]
 struct Platform {
+    /// The member API's answer per `(org, user)`. `PlatformClient::member`
+    /// caches hits and misses, so set a mode before the first
+    /// `/auth/session` call for that pair.
+    members: HashMap<(Uuid, Uuid), MemberMode>,
     /// Live access tokens.
     tokens: HashMap<String, Grant>,
     /// Authorization codes: code -> (grant, PKCE challenge).
@@ -176,6 +203,42 @@ async fn revoke(State(p): State<Shared>, Form(f): Form<HashMap<String, String>>)
     StatusCode::OK
 }
 
+async fn member(
+    State(p): State<Shared>,
+    Path((org, user)): Path<(Uuid, Uuid)>,
+) -> Result<Json<MemberInfo>, StatusCode> {
+    let mode = p
+        .lock()
+        .unwrap()
+        .members
+        .get(&(org, user))
+        .copied()
+        .unwrap_or(MemberMode::Member);
+    let (org_id, user_id) = match mode {
+        MemberMode::Member | MemberMode::Unnamed => (org, user),
+        MemberMode::Other => (Uuid::new_v4(), user),
+        MemberMode::OtherUser => (org, Uuid::new_v4()),
+        MemberMode::Absent => return Err(StatusCode::NOT_FOUND),
+        MemberMode::Down => return Err(StatusCode::SERVICE_UNAVAILABLE),
+        MemberMode::Broken => return Err(StatusCode::UNAUTHORIZED),
+    };
+    let named = !matches!(mode, MemberMode::Unnamed);
+    Ok(Json(MemberInfo {
+        user: UserInfo {
+            id: user_id,
+            email: named.then(|| "ada@acme.test".into()),
+            name: named.then(|| "Ada".into()),
+        },
+        org: OrgInfo {
+            id: org_id,
+            slug: "acme".into(),
+            name: "Acme".into(),
+            plan: "pro".into(),
+        },
+        role: Role::Admin,
+    }))
+}
+
 async fn start_platform() -> (String, Shared) {
     let shared: Shared = Arc::new(Mutex::new(Platform {
         expires_in: 3600,
@@ -185,6 +248,7 @@ async fn start_platform() -> (String, Shared) {
         .route("/oauth/introspect", post(introspect))
         .route("/oauth/token", post(token))
         .route("/oauth/revoke", post(revoke))
+        .route("/internal/orgs/{org}/members/{user}", get(member))
         .with_state(shared.clone());
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
     let addr = listener.local_addr().unwrap();
@@ -198,6 +262,8 @@ struct Harness {
     app: Router,
     stub: Shared,
     pool: PgPool,
+    /// The stub platform's URL: the console's `platform_url`.
+    base: String,
 }
 
 async fn harness_with(pool: PgPool, console: bool) -> Harness {
@@ -223,7 +289,7 @@ async fn harness_with(pool: PgPool, console: bool) -> Harness {
                 client_id: CLIENT_ID.into(),
                 keys: ConsoleKeys::derive(KEY).unwrap(),
                 public_url: PUBLIC_URL.into(),
-                platform_url: base,
+                platform_url: base.clone(),
                 resource_uri: RESOURCE.into(),
             },
         )
@@ -235,6 +301,7 @@ async fn harness_with(pool: PgPool, console: bool) -> Harness {
         app: router(state).merge(cxp_http::console::router(console)),
         stub,
         pool,
+        base,
     }
 }
 
@@ -469,10 +536,97 @@ async fn the_console_signs_in_through_the_platform(pool: PgPool) {
             "orgId": org,
             "role": "admin",
             "scopes": ["cxp:read", "cxp:write"],
+            "user": {"id": user, "email": "ada@acme.test", "name": "Ada"},
+            "org": {"id": org, "slug": "acme", "name": "Acme"},
+            "platformUrl": h.base,
         })
     );
     let r = h.call("GET", "/auth/session", &[], None).await;
-    assert_eq!(r.body, json!({"signedIn": false, "loginEnabled": true}));
+    assert_eq!(
+        r.body,
+        json!({"signedIn": false, "loginEnabled": true, "platformUrl": h.base})
+    );
+}
+
+/// Sign in as a fresh member of a fresh org whose member lookup answers
+/// `mode`, and ask `/auth/session`.
+async fn session_with_member(h: &Harness, mode: MemberMode) -> Reply {
+    let (org, user) = (Uuid::new_v4(), Uuid::new_v4());
+    h.stub.lock().unwrap().members.insert((org, user), mode);
+    let cookie = h.sign_in_as(org, user, "/console/").await;
+    h.call(
+        "GET",
+        "/auth/session",
+        &[("cookie", &with_cookie(&cookie))],
+        None,
+    )
+    .await
+}
+
+/// A session whose member the platform no longer knows is signed out, not an
+/// error: the console shows the sign-in page.
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn a_session_whose_member_is_gone_is_signed_out(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::Absent).await;
+    assert_eq!(r.status, StatusCode::OK);
+    assert_eq!(
+        r.body,
+        json!({"signedIn": false, "loginEnabled": true, "platformUrl": h.base})
+    );
+}
+
+/// The user id comes only from the verified token too.
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn a_session_the_platform_answers_for_another_user_is_refused(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::OtherUser).await;
+    assert_eq!(r.status, StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(r.body["code"], "internal");
+    assert!(r.body.get("user").is_none());
+}
+
+/// A platform failure no retry fixes is a `500` with no `Retry-After`.
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn a_session_is_500_when_the_member_lookup_fails_for_good(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::Broken).await;
+    assert_eq!(r.status, StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(r.body["code"], "internal");
+    assert!(r.headers.get("retry-after").is_none());
+}
+
+/// A user the platform has no email or name for is still signed in; the
+/// shell shows what it has.
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn an_unnamed_user_is_signed_in_with_nulls(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::Unnamed).await;
+    assert_eq!(r.status, StatusCode::OK);
+    assert_eq!(r.body["signedIn"], true);
+    assert_eq!(r.body["user"]["email"], Value::Null);
+    assert_eq!(r.body["user"]["name"], Value::Null);
+    assert!(r.body["user"].as_object().unwrap().contains_key("email"));
+}
+
+/// The org id comes only from the verified token: a member lookup that
+/// answers for another org is refused, never shown.
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn a_session_the_platform_answers_for_another_org_is_refused(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::Other).await;
+    assert_eq!(r.status, StatusCode::INTERNAL_SERVER_ERROR);
+    assert_eq!(r.body["code"], "internal");
+    assert!(r.body.get("org").is_none());
+}
+
+#[sqlx::test(migrator = "cxp_core::MIGRATOR")]
+async fn a_session_is_503_while_the_member_lookup_is_down(pool: PgPool) {
+    let h = harness(pool).await;
+    let r = session_with_member(&h, MemberMode::Down).await;
+    assert_eq!(r.status, StatusCode::SERVICE_UNAVAILABLE);
+    assert_eq!(r.body["code"], "unavailable");
+    assert_eq!(r.headers["retry-after"], "5");
 }
 
 #[sqlx::test(migrator = "cxp_core::MIGRATOR")]

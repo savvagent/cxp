@@ -4,8 +4,8 @@
   // `application_id` or `page_id`, as in the React console), and "Clear filter".
   import { m } from "#lib/paraglide/messages.js";
   import { page } from "$app/state";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Select from "#lib/components/ui/select/index.js";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Select from "@savvagent/console-ui/ui/select";
   import { ALL, fromFilterSelect } from "#lib/forms.js";
   import { paramHref, pushUrl } from "#lib/url-state.js";
   import type { CatalogOption } from "./options.js";

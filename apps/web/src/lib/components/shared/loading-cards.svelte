@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Skeleton } from "#lib/components/ui/skeleton/index.js";
+  import { Skeleton } from "@savvagent/console-ui/ui/skeleton";
 
   /** A grid of card placeholders (a dashboard's stat cards) while they load. */
   let { count = 4 }: { count?: number } = $props();

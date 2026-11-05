@@ -17,9 +17,9 @@
   import PageHeader from "#lib/components/shared/page-header.svelte";
   import CreateSurveyDialog from "#lib/components/surveys/create-survey-dialog.svelte";
   import { ACTIVE_BADGE_CLASS, questionCount, statusLabel } from "#lib/components/surveys/surveys.js";
-  import { Badge } from "#lib/components/ui/badge/index.js";
-  import { Button } from "#lib/components/ui/button/index.js";
-  import * as Table from "#lib/components/ui/table/index.js";
+  import { Badge } from "@savvagent/console-ui/ui/badge";
+  import { Button } from "@savvagent/console-ui/ui/button";
+  import * as Table from "@savvagent/console-ui/ui/table";
   import { formatNumber, localeDate } from "#lib/format.js";
   import { PAGE_SIZE, showingLine } from "#lib/pagination.js";
   import { createDeleteSurvey, createSurveys } from "#lib/queries/index.js";

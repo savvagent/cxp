@@ -1,5 +1,6 @@
 // How the console shows dates and numbers: always in the active locale (the
-// one `#lib/locale.js` resolved at boot, read through Paraglide's `getLocale`).
+// one `resolveAtBoot` from `@savvagent/console-ui` set at boot, read through
+// Paraglide's `getLocale`).
 // The pages keep the date shapes they always had, so the shapes differ.
 import { getLocale } from "#lib/paraglide/runtime.js";
 

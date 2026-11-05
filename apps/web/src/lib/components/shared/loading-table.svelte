@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Skeleton } from "#lib/components/ui/skeleton/index.js";
+  import { Skeleton } from "@savvagent/console-ui/ui/skeleton";
 
   /** A table's placeholder while it loads: a header bar and `rows` row bars. */
   let { rows = 5 }: { rows?: number } = $props();
