@@ -57,7 +57,8 @@ and is not worked around here.
 - **A member lookup that finds no active member answers signed out**, as an inactive token does:
   the platform no longer vouches for the membership, and the shell cannot render without the org's
   name. This only narrows `/auth/session`; `/api` authenticates the cookie exactly as before, so
-  the auth invariant is unchanged. A lookup that cannot be answered is `503` (retriable) or `500` (not), exactly as
+  the auth invariant is unchanged. `PlatformClient` caches the miss briefly
+  (`member_negative_ttl`), so a person re-added to the org reads as signed out until it lapses. A lookup that cannot be answered is `503` (retriable) or `500` (not), exactly as
   `authenticate` maps failures today.
 - **`cn` and the shadcn prop types stay importable from `#lib/utils.js`** as a re-export of the
   package's, so `components.json`'s alias and the one local component (`sonner`) keep working.

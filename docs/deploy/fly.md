@@ -1745,7 +1745,8 @@ tokens are your own; nothing here needs the CI ones). Every image build needs
 Packages: the console installs `@savvagent/console-ui` from there, and the Dockerfile takes the
 token as a build secret so it lands in no layer (the deploy job passes its `GITHUB_TOKEN`, which
 reads the package because the package grants this repo Read access in its Actions settings, a
-one-time grant by an org admin):
+one-time grant by an org admin). By hand, `gh auth token` works once the `gh` login holds the
+`read:packages` scope (`gh auth refresh -s read:packages`, once):
 
 ```bash
 SHA=$(git rev-parse HEAD)
