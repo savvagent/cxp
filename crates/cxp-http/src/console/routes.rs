@@ -354,6 +354,30 @@ struct SessionView {
     role: Option<&'static str>,
     #[serde(skip_serializing_if = "Option::is_none")]
     scopes: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    user: Option<UserView>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    org: Option<OrgView>,
+    /// The platform's origin, for the console's links to it; present whenever
+    /// the console is configured, signed in or not.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    platform_url: Option<String>,
+}
+
+/// The signed-in user. `email` and `name` serialize as `null` when the
+/// platform has none.
+#[derive(Serialize)]
+struct UserView {
+    id: uuid::Uuid,
+    email: Option<String>,
+    name: Option<String>,
+}
+
+#[derive(Serialize)]
+struct OrgView {
+    id: uuid::Uuid,
+    slug: String,
+    name: String,
 }
 
 fn role_name(role: Role) -> &'static str {
@@ -368,32 +392,79 @@ fn role_name(role: Role) -> &'static str {
 /// answer cannot be known (`503`): the console decides what to show from the
 /// body, not the status.
 async fn session(State(console): State<Option<Console>>, headers: HeaderMap) -> Response {
-    let signed_out = |login_enabled| SessionView {
+    let signed_out = |login_enabled, platform_url: Option<String>| SessionView {
         signed_in: false,
         login_enabled,
         user_id: None,
         org_id: None,
         role: None,
         scopes: None,
+        user: None,
+        org: None,
+        platform_url,
     };
     let view = match console {
-        None => signed_out(false),
-        Some(console) => match console.session_cookie(&headers) {
-            None => signed_out(true),
-            Some(cookie) => match console.authenticate(cookie).await {
-                Ok(p) => SessionView {
-                    signed_in: true,
-                    login_enabled: true,
-                    user_id: Some(p.user_id.as_uuid()),
-                    org_id: Some(p.org_id.as_uuid()),
-                    role: Some(role_name(p.role)),
-                    scopes: Some(p.scopes),
+        None => signed_out(false, None),
+        Some(console) => {
+            let platform_url = console.inner.settings.platform_url.clone();
+            match console.session_cookie(&headers) {
+                None => signed_out(true, Some(platform_url)),
+                Some(cookie) => match console.authenticate(cookie).await {
+                    Ok(p) => {
+                        // Introspection carries no names; they come from the
+                        // platform's member API, called with the service
+                        // credential. Ids are the principal's, and a lookup
+                        // that answers for anyone else is refused.
+                        let found = console
+                            .inner
+                            .platform
+                            .member(p.org_id.as_uuid(), p.user_id.as_uuid())
+                            .await;
+                        match found {
+                            Ok(Some(m))
+                                if m.user.id == p.user_id.as_uuid()
+                                    && m.org.id == p.org_id.as_uuid() =>
+                            {
+                                SessionView {
+                                    signed_in: true,
+                                    login_enabled: true,
+                                    user_id: Some(p.user_id.as_uuid()),
+                                    org_id: Some(p.org_id.as_uuid()),
+                                    role: Some(role_name(p.role)),
+                                    scopes: Some(p.scopes),
+                                    user: Some(UserView {
+                                        id: p.user_id.as_uuid(),
+                                        email: m.user.email,
+                                        name: m.user.name,
+                                    }),
+                                    org: Some(OrgView {
+                                        id: p.org_id.as_uuid(),
+                                        slug: m.org.slug,
+                                        name: m.org.name,
+                                    }),
+                                    platform_url: Some(platform_url),
+                                }
+                            }
+                            Ok(Some(_)) => {
+                                tracing::error!(
+                                    "the platform's member lookup answered for another user or org"
+                                );
+                                return internal();
+                            }
+                            Ok(None) => signed_out(true, Some(platform_url)),
+                            Err(e) if e.is_retriable() => return unavailable(),
+                            Err(e) => {
+                                tracing::error!(error = %e, "the platform's member lookup failed");
+                                return internal();
+                            }
+                        }
+                    }
+                    Err(AuthFailure::Unavailable) => return unavailable(),
+                    Err(AuthFailure::Internal) => return internal(),
+                    Err(_) => signed_out(true, Some(platform_url)),
                 },
-                Err(AuthFailure::Unavailable) => return unavailable(),
-                Err(AuthFailure::Internal) => return internal(),
-                Err(_) => signed_out(true),
-            },
-        },
+            }
+        }
     };
     let mut res = Json(view).into_response();
     no_store(&mut res);
