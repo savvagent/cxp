@@ -1010,7 +1010,8 @@ fly secrets list -a otto-cxp
 #     image: push one (`fly deploy -a otto-cxp --build-only --push --image-label m6`), copy it,
 #     then start it here with an argument cxp-server rejects before it touches anything (no
 #     database, no migration). It must start and exit 1.
-fly deploy -a otto-cxp --build-only --push --remote-only --image-label m6
+fly deploy -a otto-cxp --build-only --push --remote-only --image-label m6 \
+  --build-secret NODE_AUTH_TOKEN="$(gh auth token)"
 FLY_API_TOKEN="$(fly tokens create deploy -a otto-cxp)" \
 FLY_API_TOKEN_MIGRATE="$(fly tokens create deploy -a otto-cxp-migrate)" \
   scripts/deploy/copy-image.sh registry.fly.io/otto-cxp:m6 registry.fly.io/otto-cxp-migrate:m6
@@ -1105,7 +1106,7 @@ BEGIN; SET LOCAL ROLE cxp_app; SELECT current_user; ROLLBACK;   -- cxp_app
 ```
 
 **Then merge the PR for #28** (with `FLY_DEPLOY` enabled the merge deploys; otherwise `fly deploy
--a otto-cxp --remote-only`). The deploy job's migration step applies 0008 as `cxp_owner`. If T1 was skipped
+-a otto-cxp --remote-only --build-secret NODE_AUTH_TOKEN="$(gh auth token)"`). The deploy job's migration step applies 0008 as `cxp_owner`. If T1 was skipped
 it fails with `role cxp_app does not exist and cxp_owner may not create it`, nothing is recorded,
 and the old release keeps serving: run T1, then deploy again.
 
@@ -1739,11 +1740,15 @@ The job builds and pushes one image, copies it to the `otto-cxp-migrate` registr
 the image to `otto-cxp`.
 
 A hand deploy does the same steps, because `fly deploy` alone no longer migrates (the
-tokens are your own; nothing here needs the CI ones):
+tokens are your own; nothing here needs the CI ones). Every image build needs
+`--build-secret NODE_AUTH_TOKEN=…`, a token that can read `@savvagent` packages on GitHub
+Packages: the console installs `@savvagent/console-ui` from there, and the Dockerfile takes the
+token as a build secret so it lands in no layer (the deploy job passes its `GITHUB_TOKEN`):
 
 ```bash
 SHA=$(git rev-parse HEAD)
-fly deploy --build-only --push --remote-only -a otto-cxp --image-label "sha-$SHA"
+fly deploy --build-only --push --remote-only -a otto-cxp --image-label "sha-$SHA" \
+  --build-secret NODE_AUTH_TOKEN="$(gh auth token)"
 FLY_API_TOKEN="$(fly tokens create deploy -a otto-cxp)" \
 FLY_API_TOKEN_MIGRATE="$(fly tokens create deploy -a otto-cxp-migrate)" \
   scripts/deploy/copy-image.sh "registry.fly.io/otto-cxp:sha-$SHA" "registry.fly.io/otto-cxp-migrate:sha-$SHA"

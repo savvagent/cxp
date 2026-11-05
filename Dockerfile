@@ -18,12 +18,23 @@ RUN corepack enable && corepack prepare pnpm@9.15.9 --activate
 # The workspace's manifests alone, so the install is cached until a
 # dependency changes. Only @cxp/web's dependencies are installed; the other
 # workspace manifests are here because the lockfile names every importer.
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 COPY apps/web/package.json apps/web/
 COPY sdk/typescript/package.json sdk/typescript/
 COPY packages/react/package.json packages/react/
-RUN --mount=type=cache,id=otto-cxp-pnpm,target=/root/.local/share/pnpm/store,sharing=locked \
-    pnpm install --frozen-lockfile --filter @cxp/web
+# @savvagent/console-ui (the shared console shell) comes from GitHub Packages,
+# which needs a token even to read. It arrives as a BuildKit secret, read into
+# the variable `.npmrc` names for this one command only, so it is in no layer,
+# ARG or ENV: `podman build --secret id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN`,
+# `fly deploy --build-secret NODE_AUTH_TOKEN=...`, or build-push-action's
+# `secrets:` in CI.
+RUN --mount=type=secret,id=NODE_AUTH_TOKEN \
+    --mount=type=cache,id=otto-cxp-pnpm,target=/root/.local/share/pnpm/store,sharing=locked \
+    if [ ! -s /run/secrets/NODE_AUTH_TOKEN ]; then \
+      echo "build with the secret NODE_AUTH_TOKEN: a token that can read @savvagent packages on GitHub Packages" >&2; \
+      exit 1; \
+    fi \
+    && NODE_AUTH_TOKEN="$(cat /run/secrets/NODE_AUTH_TOKEN)" pnpm install --frozen-lockfile --filter @cxp/web
 
 COPY apps/web apps/web
 # The wire fixture the console's type tests import; `svelte-check` checks

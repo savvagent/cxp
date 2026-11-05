@@ -32,6 +32,7 @@ server's CSP is `script-src 'self'`); `pnpm test` there needs the build's `dist/
 
 ### TypeScript/React (pnpm monorepo: `sdk/typescript`, `packages/react`, `apps/web`)
 ```bash
+export NODE_AUTH_TOKEN=$(gh auth token)   # .npmrc: @savvagent/* comes from GitHub Packages
 pnpm install --frozen-lockfile
 pnpm build   # tsup / vite / SvelteKit
 pnpm test    # vitest
@@ -212,7 +213,7 @@ reviews or status checks, so the merge gate below is on the agent.
 - bootstrap:
   - Postgres: `podman ps --format '{{.Ports}}' | grep -q ':15435->'`; if that fails, run `podman start otto-cxp-postgres 2>/dev/null || podman run -d --name otto-cxp-postgres -e POSTGRES_USER=cxp -e POSTGRES_PASSWORD=cxp -e POSTGRES_DB=otto_cxp -p 127.0.0.1:15435:5432 docker.io/library/postgres:16` (one container shared by every worktree; `compose.yaml` describes the same one)
   - Role: `psql postgres://cxp:cxp@localhost:15435/otto_cxp -tAc "select 1 from pg_roles where rolname='otto_app'"` and again with `'cxp_app'`; for each that prints nothing instead of `1`, run `psql postgres://cxp:cxp@localhost:15435/otto_cxp -c "CREATE ROLE <role> NOLOGIN;"`
-  - If the change touches a path in the pnpm gate below: `pnpm install --frozen-lockfile`
+  - If the change touches a path in the pnpm gate below: `export NODE_AUTH_TOKEN=$(gh auth token) && pnpm install --frozen-lockfile` (the root `.npmrc` reads the `@savvagent` scope from GitHub Packages with it)
   - If you will run the server locally (the gates do not need it): `cp .env.example .env`, then fill in the platform settings it lists
 - teardown: none
 
@@ -226,8 +227,8 @@ another port (`podman run -d --name cxp-pg-<branch_> -e POSTGRES_USER=cxp -e POS
 - lint: cargo clippy --workspace --all-targets --locked -- -D warnings
 - format: cargo fmt --all -- --check
 - extra: `git diff --name-status --diff-filter=MDR origin/main...HEAD -- 'crates/*/migrations/*'` must print nothing
-- when Dockerfile, .dockerignore, Cargo.toml, Cargo.lock, rust-toolchain.toml, crates/**, apps/web/**, package.json, pnpm-lock.yaml, pnpm-workspace.yaml, sdk/typescript/package.json, packages/react/package.json: podman build -t otto-cxp:check .   (only once a `Dockerfile` exists)
-- when package.json, pnpm-lock.yaml, pnpm-workspace.yaml, sdk/typescript/**, packages/react/**, apps/web/**: pnpm install --frozen-lockfile && pnpm lint && pnpm build && pnpm test
+- when Dockerfile, .dockerignore, Cargo.toml, Cargo.lock, rust-toolchain.toml, crates/**, apps/web/**, package.json, pnpm-lock.yaml, pnpm-workspace.yaml, .npmrc, sdk/typescript/package.json, packages/react/package.json: NODE_AUTH_TOKEN=$(gh auth token) podman build --secret id=NODE_AUTH_TOKEN,env=NODE_AUTH_TOKEN -t otto-cxp:check .
+- when package.json, pnpm-lock.yaml, pnpm-workspace.yaml, .npmrc, sdk/typescript/**, packages/react/**, apps/web/**: pnpm install --frozen-lockfile && pnpm lint && pnpm build && pnpm test
 - evidence: report pass counts per test binary; `cargo test` without `DATABASE_URL` panics rather than skipping, so a panic there is a missing variable, not a test failure; `DATABASE_URL` points only at a local Postgres, never at a Fly database
 - toolchain: stable via `rust-toolchain.toml`; CI floats stable
 
@@ -253,7 +254,7 @@ another port (`podman run -d --name cxp-pg-<branch_> -e POSTGRES_USER=cxp -e POS
 ### Ship
 - deploy: ci-auto
 - merge gate: on the PR's head SHA: `rust`, `docker-build`, `migrations-append-only` and `web` (CI workflow) succeeded, plus every other check that ran on the head SHA (the ruleset requires none). Before `.github/workflows/ci.yml` exists on the PR's head, the merge gate is the full local gate run on the head SHA with a clean tree
-- verify: the SHA proxy is the `deploy` job of the CI run for the merge SHA (`gh run list -R savvagent/cxp --workflow CI --commit <merge-sha> --json databaseId,status,conclusion`); then `fly status -a otto-cxp` shows the machines on the new release; `curl -s https://cxp.savvagent.com/readyz` returns ready; `fly logs -a otto-cxp --no-tail` shows, from the deploy job's "Migrate" step (`otto-cxp-migrate`'s one-off machine), `applying migrations` and `migrations applied` (as `cxp_owner`), and from each serving machine `removed CXP_MIGRATION_DATABASE_URL from the serving process's environment`, `database role "cxp_server" … it owns nothing in this database …`, `not migrating`, `tenant isolation enforced as role "cxp_app"`, `the otto platform accepted this service's credential`, and `declared usage meters`; then exercise the changed surface read-only (`whoami` first). The first deploy is a hand `fly deploy -a otto-cxp --remote-only` (Rob); he sets `FLY_DEPLOY=enabled` only after verifying it. While the repo variable `FLY_DEPLOY` is not `enabled` the deploy job is skipped and a merge deploys nothing: report merged, not live
+- verify: the SHA proxy is the `deploy` job of the CI run for the merge SHA (`gh run list -R savvagent/cxp --workflow CI --commit <merge-sha> --json databaseId,status,conclusion`); then `fly status -a otto-cxp` shows the machines on the new release; `curl -s https://cxp.savvagent.com/readyz` returns ready; `fly logs -a otto-cxp --no-tail` shows, from the deploy job's "Migrate" step (`otto-cxp-migrate`'s one-off machine), `applying migrations` and `migrations applied` (as `cxp_owner`), and from each serving machine `removed CXP_MIGRATION_DATABASE_URL from the serving process's environment`, `database role "cxp_server" … it owns nothing in this database …`, `not migrating`, `tenant isolation enforced as role "cxp_app"`, `the otto platform accepted this service's credential`, and `declared usage meters`; then exercise the changed surface read-only (`whoami` first). The first deploy is a hand `fly deploy -a otto-cxp --remote-only --build-secret NODE_AUTH_TOKEN="$(gh auth token)"` (Rob); he sets `FLY_DEPLOY=enabled` only after verifying it. While the repo variable `FLY_DEPLOY` is not `enabled` the deploy job is skipped and a merge deploys nothing: report merged, not live
 - release: none (continuous deploy of `main`); `@cxp/sdk` and `@cxp/react` are not published, and a publish is a human decision (Rob)
 - version files: crates/*/Cargo.toml (workspace version), sdk/typescript/package.json, packages/react/package.json
 
