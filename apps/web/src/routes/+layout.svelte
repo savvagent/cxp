@@ -7,13 +7,21 @@
   import { onMount, type Snippet } from "svelte";
   import RootLayout from "#lib/components/layout/root-layout.svelte";
   import { Toaster } from "#lib/components/ui/sonner/index.js";
-  import { resolveAtBoot } from "#lib/locale.js";
+  import { resolveAtBoot } from "@savvagent/console-ui";
+  import { assertIsLocale, overwriteGetLocale } from "#lib/paraglide/runtime.js";
   import { queryClient } from "#lib/query-client.js";
 
-  // The language, decided before anything renders (`#lib/locale.js`): the
-  // stored choice, else the browser's, else English. Top-level here, not in
-  // `+layout.ts`, so it runs once, synchronously, ahead of the first paint.
-  resolveAtBoot();
+  // The language, decided before anything renders, by the shared shell: the
+  // stored choice, else the browser's, else English. CXP's own runtime is
+  // passed so its messages and the shell's always agree. Top-level here, not
+  // in `+layout.ts`, so it runs once, synchronously, ahead of the first paint,
+  // with no inline script (the server's CSP is `script-src 'self'`).
+  //
+  // The shell types a runtime's getter as `() => string`; Paraglide's generated
+  // runtime narrows it to CXP's locales. The shell only installs one of the six
+  // locales both ship, so `assertIsLocale` checks that narrowing rather than
+  // casting it.
+  resolveAtBoot((get) => overwriteGetLocale(() => assertIsLocale(get())));
 
   let { children }: { children: Snippet } = $props();
 

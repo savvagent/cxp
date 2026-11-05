@@ -77,9 +77,13 @@ is a JSON 404.
 - `sdk/typescript/` - `@cxp/sdk` (MIT): `connectCxp({ url, token | authProvider })` returns `{ cxp }` with
   `.support`, `.feedback`, `.cdp`.
 - `packages/react/` - `@cxp/react` (MIT): components and hooks over `@cxp/sdk`. `apps/web/` - `@cxp/web`, the
-  web console: a static SvelteKit 3 (Svelte 5) app served under `/console/`, localized with Paraglide
-  (`messages/{en,es,de,fr,it,hi}.json`, the platform console's locales; `src/lib/locale.ts` picks
-  the stored choice, else the browser's, else `en`). Every user-visible string is a message read when
+  web console: a static SvelteKit 3 (Svelte 5) app served under `/console/`, inside the shared
+  Savvagent shell `@savvagent/console-ui` (exact pin, from GitHub Packages: header, footer, theme,
+  locale and the shadcn-svelte components, imported from `@savvagent/console-ui/ui/*`; the sidebar
+  is CXP's own), localized with Paraglide (`messages/{en,es,de,fr,it,hi}.json`, the platform
+  console's locales; the shell's `resolveAtBoot`, given CXP's runtime, picks the stored choice,
+  else the browser's, else `en`). The shell fetches the platform's service list, so the console's
+  CSP allows `connect-src` to the `CXP_PLATFORM_URL` origin. Every user-visible string is a message read when
   shown (`m.key()`), never a module-level string, since modules load before the locale resolves.
 - `sdk/swift/`, `sdk/kotlin/` - stubs with no gate.
 

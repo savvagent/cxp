@@ -2,6 +2,7 @@
 // to the otto platform and back with an HttpOnly session cookie the console
 // never sees; `/auth/session` says whether it is signed in, and as whom;
 // `/auth/logout` ends it.
+import type { ConsoleSession } from "@savvagent/console-ui";
 import type { QueryClient } from "@tanstack/svelte-query";
 import { toast } from "svelte-sonner";
 import { m } from "#lib/paraglide/messages.js";
@@ -18,6 +19,8 @@ const signedOutSchema = z.object({
   signedIn: z.literal(false),
   /** False while the server has no console client configured. */
   loginEnabled: z.boolean(),
+  /** The platform's origin, for the shared header; absent while sign-in is off. */
+  platformUrl: z.string().optional(),
 });
 
 // `z.guid()` is zod 3's `z.string().uuid()`: any 8-4-4-4-12 hex id. zod 4's
@@ -30,13 +33,41 @@ const signedInSchema = z.object({
   orgId: z.guid(),
   role: z.enum(["owner", "admin", "member"]),
   scopes: z.array(z.string()),
+  /** Who is signed in, as the platform names them: the shared header's account menu. */
+  user: z.object({
+    id: z.guid(),
+    email: z.string().nullable(),
+    name: z.string().nullable(),
+    /**
+     * The account's chosen locale, `null` for none. The platform does not
+     * expose it to services yet, so the server never sends it and
+     * `reconcile` gets `undefined`, which changes nothing.
+     */
+    locale: z.string().nullable().optional(),
+  }),
+  /** The one org this session opens: the shared header's org switcher. */
+  org: z.object({ id: z.guid(), slug: z.string(), name: z.string() }),
+  /** The platform's origin, which every link in the shared shell is built from. */
+  platformUrl: z.string(),
 });
 
 /** What `GET /auth/session` answers. */
 export const sessionSchema = z.discriminatedUnion("signedIn", [signedOutSchema, signedInSchema]);
 
 export type Session = z.infer<typeof sessionSchema>;
+export type SignedIn = z.infer<typeof signedInSchema>;
 export type SignedOut = z.infer<typeof signedOutSchema>;
+
+/**
+ * The shared shell's view of a session. A CXP session opens exactly one org,
+ * so that org is both the current one and the only one offered; switching org
+ * is a fresh sign-in, which the platform's org page starts.
+ */
+export function toConsoleSession(s: SignedIn): ConsoleSession {
+  const org = { id: s.org.id, slug: s.org.slug, name: s.org.name, role: s.role };
+  const { id, email, name } = s.user;
+  return { user: { id, email, name }, orgs: [org], currentOrg: org, platformUrl: s.platformUrl };
+}
 
 /**
  * Why the last sign-in failed, from the `login_error` the server redirects
@@ -80,7 +111,11 @@ export function markSignedOut(client: QueryClient): void {
     void client.invalidateQueries({ queryKey: sessionKeys.all });
     return;
   }
-  const signedOut: SignedOut = { signedIn: false, loginEnabled: previous.loginEnabled };
+  const signedOut: SignedOut = {
+    signedIn: false,
+    loginEnabled: previous.loginEnabled,
+    ...(previous.platformUrl === undefined ? {} : { platformUrl: previous.platformUrl }),
+  };
   client.setQueryData<Session>(sessionKeys.all, signedOut);
 }
 
